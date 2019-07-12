@@ -27,6 +27,10 @@ class TaskTimer(QtGui.QWidget):
         self.setLayout(self.mainLayout)
 
 
+class TaskWidget(QtGui.QWidget):
+    pass
+
+
 class TimerWidget(QtGui.QWidget):
     def __init__(self, parent=None, displayButtons=True, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
