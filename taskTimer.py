@@ -1,17 +1,16 @@
 from PySide import QtCore
 from PySide import QtGui
+# from . import utils
+import utils
 
 # TODO: Buttons
 # Stop active timer if any and start new
 # cycle timer previous - Stop active timer if any and resume previous
 # cycle timer next - Stop active timer if any and resume next
 
-MILISECONDS_IN_AN_HOUR = 3600000
-MILISECONDS_IN_A_MINUTE = 60000
-MILISECONDS_IN_A_SECOND = 1000
-
 
 class TaskTimer(QtGui.QWidget):
+
     def __init__(self, *arg, **kwarg):
         super(TaskTimer, self).__init__(*arg, **kwarg)
         self.setupUI()
@@ -32,6 +31,7 @@ class TaskWidget(QtGui.QWidget):
 
 
 class TimerWidget(QtGui.QWidget):
+
     def __init__(self, parent=None, displayButtons=True, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.displayButtons = displayButtons
@@ -48,7 +48,7 @@ class TimerWidget(QtGui.QWidget):
         self.setLayout(self.mainlayout)
 
         self.lcdDisplay = QtGui.QLCDNumber(self)
-        self.lcdDisplay.setDigitCount(8)
+        self.lcdDisplay.setDigitCount(10)
         self.mainlayout.addWidget(self.lcdDisplay)
         self.buttonLayout = QtGui.QHBoxLayout()
 
@@ -90,11 +90,19 @@ class TimerWidget(QtGui.QWidget):
 
     def timerEvent(self, event):
         milliseconds = self.elapsed + self.timer.elapsed()
-        hours, remainder = divmod(milliseconds, MILISECONDS_IN_AN_HOUR)
-        minutes, remainder = divmod(remainder, MILISECONDS_IN_A_MINUTE)
-        seconds, milliseconds = divmod(remainder, MILISECONDS_IN_A_SECOND)
-        delta = '{:02}:{:02}:{:02}'.format(hours, minutes, seconds)
-        self.lcdDisplay.display(delta)
+        timestring = milli2LCDString(milliseconds)
+        self.lcdDisplay.display(timestring)
+
+
+def milli2LCDString(milliseconds):
+    days = int(utils.convertTime(milliseconds, 'ms', 'days'))
+    if days:
+        raise Exception("Cannot set a value > 24 hours.")
+    hours = int(utils.convertTime(milliseconds, 'ms', 'hours'))
+    minutes = int(utils.convertTime(milliseconds, 'ms', 'mins'))
+    seconds = int(utils.convertTime(milliseconds, 'ms', 'secs'))
+    timestring = '{:02}:{:02}:{:02}'.format(hours, minutes, seconds)
+    return timestring
 
 
 if __name__ == "__main__":
