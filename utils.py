@@ -26,10 +26,12 @@ def stringToTime(timeStr, unit='us'):
     if not isinstance(timeStr, str):
         print "Please specify a time string"
         return
+
     timeDict = _timeStringToDict(timeStr)
     timeValue = 0
     for unitStr, unitValue in timeDict.items():
         timeValue += convertTime(unitValue, unitStr, unit)
+
     return timeValue
 
 
@@ -54,8 +56,8 @@ def timeToString(timeValue, unit='ms'):
     ])
 
     for timeStr in timeDict:
-        p = convertTime(timeValue, unit, timeStr)
-        timeDict[timeStr] = float(int(p))  # round to nearest as float
+        unitValue = convertTime(timeValue, unit, timeStr)
+        timeDict[timeStr] = float(int(unitValue))  # round to nearest as float
         timeValue = timeValue - convertTime(timeDict[timeStr], timeStr, unit)
 
     timeStrTokens = []
@@ -71,6 +73,7 @@ def timeToString(timeValue, unit='ms'):
             timeStr += "%s, " % token
         else:
             timeStr += token
+
     return timeStr
 
 
@@ -107,6 +110,7 @@ def _timeStringToDict(timeStr):
         # Get the known equivalent unit string
         unit = _unitFromString(unitStr)
         timeDict[unit] += float(timeVal)
+
     return timeDict
 
 
