@@ -5,7 +5,7 @@ def convertTime(value, src_unit, dst_unit):
     """
     Convert a unit of time from a source unit to a destination unit
     """
-    newValue = float(value) * _timeScale(src_unit, dst_unit)
+    newValue = float(value) * _timeMultiplier(src_unit, dst_unit)
     return newValue
 
 
@@ -114,9 +114,9 @@ def _timeStringToDict(timeStr):
     return timeDict
 
 
-def _timeScale(src_unit='hr', dst_unit='sec'):
+def _timeMultiplier(src_unit='hr', dst_unit='sec'):
     """
-    Return a scale number between two time units.
+    Return a multiplier between two time units.
     """
     ruler = {
         'd': 86400000000.0,
