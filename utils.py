@@ -23,7 +23,7 @@ def stringToTime(timeStr, unit='us'):
     stringToTime("0.5d 6hrs", 'hrs')
     >>>18.0
     """
-    if not isinstance(timeStr, str):
+    if not isinstance(timeStr, basestring):
         print "Please specify a time string"
         return
 
@@ -75,6 +75,19 @@ def timeToString(timeValue, unit='ms'):
             timeStr += token
 
     return timeStr
+
+
+def isValidTimeString(timeStr):
+    isValid = True
+    timeStr = str(timeStr).replace(',', ' ')
+    tokens = timeStr.split(' ')
+    for token in tokens:
+        # Get the value of time within the token, account for decimal places
+        timeVal = ''.join([digit for digit in token if digit.isdigit() or digit == '.'])
+        if not timeVal:
+            isValid = False
+            break
+    return isValid
 
 
 def _timeStringToDict(timeStr):
@@ -142,7 +155,7 @@ def _unitFromString(unit='sec'):
         return 'y'
     elif unit in ('mon', 'mons', 'mth', 'mths', 'month', 'months'):
         return 'mth'
-    elif unit in ('w', 'wks', 'week', 'weeks'):
+    elif unit in ('w', 'wk', 'wks', 'week', 'weeks'):
         return 'w'
     elif unit in ('d', 'day', 'days'):
         return 'd'
@@ -164,8 +177,21 @@ if __name__ == "__main__":
     print stringToTime("1hrs", 'mins')
     print stringToTime("1d", 'hrs')
     print stringToTime("0.5y 1w 5d 3.5h 50m 15s 20ms 6us", 'w')
+    print stringToTime("26weeks 3days 3hours", 'y')
     print stringToTime("0.5d 6hrs", 'hrs')
     print timeToString(360000, 'ms')
+    print timeToString(24, 'w')
     print timeToString(360, 'h')
     print timeToString(2, 'h')
     print timeToString(1, 's')
+
+    print "*" * 80
+    elapsed = stringToTime('1h 29mins', 'ms')
+    print elapsed
+    hours, remainder = divmod(elapsed, _timeMultiplier('hours', 'ms'))
+    halfHour, remainder = divmod(remainder, _timeMultiplier('hours', 'ms') / 2)
+    print hours
+    print halfHour
+    print _timeMultiplier('hours', 'ms') / 2
+
+    print isValidTimeString(None)
