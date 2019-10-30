@@ -93,11 +93,11 @@ def isValidTimeString(timeStr):
 def _timeStringToDict(timeStr):
     """
     Parse time strings to dict with separated units:
-    >>>parseTimeString('5d 3h 50m 15s 20ms 6us')
+    >>>_timeStringToDict('5d 3h 50m 15s 20ms 6us')
     {'d':5, 'h':3, 'm':50, 's':15, 'ms':20, 'us':6}
-    >>>parseTimeString('5day')  # or '5days'
+    >>>_timeStringToDict('5day')  # or '5days'
     {'d':5, 'h':0.0, 'm':0.0, 's':0.0, 'ms':0.0, 'us':0.0}
-    >>>parseTimeString('24hrs,30mins')
+    >>>_timeStringToDict('24hrs,30mins')
     {'h':24, 'm':30,'m':0.0, 's':0.0, 'ms':0.0, 'us':0.0}
     """
     timeDict = OrderedDict([
