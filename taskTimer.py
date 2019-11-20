@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import datetime
 from PySide import QtCore
 from PySide import QtGui
 from functools import partial
@@ -10,10 +11,11 @@ import utils
 
 
 # TODO: Error handle time edit values with style/poup
+# Add base class for tasktextwidget for necessary methods, eg get task name
 # Add customisable tasktextwidget
 # Add setToolTip methods of commit btn
-# Add customisable commit button callback
-
+# Add customisable commit button callback (add as option in commit button menu)
+# Add export to csv option to commit button by default
 
 class TaskTimer(QtGui.QWidget):
     def __init__(self, *args, **kwargs):
@@ -344,8 +346,7 @@ class TaskTimer(QtGui.QWidget):
         for i in xrange(self.listWidget.count()):
             item = self.listWidget.item(i)
             widget = self.listWidget.itemWidget(item)
-            print widget.taskLineEdit.text()
-            print widget.elapsed()
+            print widget.taskLineEdit.text(), " : ", utils.timeToString(widget.elapsed()), " : ", widget.started(), " : ", widget.ended()
 
     def timerEvent(self, event):
         totalElapsed = 0
@@ -522,8 +523,14 @@ class TaskWidget(QtGui.QWidget):
     def start(self):
         self.timerWidget.start()
 
+    def started(self):
+        return self.timerWidget.started()
+
     def stop(self):
         self.timerWidget.stop()
+
+    def ended(self):
+        return self.timerWidget.ended()
 
     def reset(self):
         self.timerWidget.reset()
@@ -568,6 +575,8 @@ class TimerWidget(QtGui.QLCDNumber):
         self._timerID = None
         self._elapsed = 0
         self._timer = QtCore.QElapsedTimer()
+        self._started = None
+        self._ended = None
 
         self.setupUI()
         self.reset()
@@ -608,13 +617,24 @@ class TimerWidget(QtGui.QLCDNumber):
     def start(self):
         if not self.isActive():
             self._timerID = self.startTimer(1)
+        if not self._started:
+            self._started = datetime.datetime.now()
         self._timer.start()
+
+    def started(self):
+        return self._started
 
     def stop(self):
         if self._timerID:
             self._elapsed += self._timer.elapsed()
             self.killTimer(self._timerID)
             self._timerID = None
+            self._ended = datetime.datetime.now()
+
+    def ended(self):
+        if self._timerID:
+            self._ended = datetime.datetime.now()
+        return self._ended
 
     def reset(self):
         if self._timerID:
