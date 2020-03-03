@@ -35,7 +35,7 @@ def stringToTime(timeStr, unit='us'):
     return timeValue
 
 
-def timeToString(timeValue, unit='ms'):
+def timeToString(timeValue, inputUnit='ms', minUnit='us'):
     """
     Convert time value to a string
     """
@@ -56,9 +56,11 @@ def timeToString(timeValue, unit='ms'):
     ])
 
     for timeStr in timeDict:
-        unitValue = convertTime(timeValue, unit, timeStr)
+        unitValue = convertTime(timeValue, inputUnit, timeStr)
         timeDict[timeStr] = float(int(unitValue))  # round to nearest as float
-        timeValue = timeValue - convertTime(timeDict[timeStr], timeStr, unit)
+        timeValue = timeValue - convertTime(timeDict[timeStr], timeStr, inputUnit)
+        if _unitFromString(timeStr) == _unitFromString(minUnit):
+            break
 
     timeStrTokens = []
     for timeUnit, timeValue in timeDict.items():
