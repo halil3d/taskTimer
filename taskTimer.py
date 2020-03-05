@@ -211,7 +211,33 @@ class TaskTimer(QtGui.QWidget):
         menu.show()
 
     def exportTasksToCSV(self):
-        pass
+        import os
+        import csv
+        import time
+        import datetime
+
+        d = datetime.datetime.fromtimestamp(time.time())
+
+        csv_file = os.path.expanduser('~/.taskTimer/%s_tasktimer.csv' % (d.strftime("%Y-%m-%d_%H%M%S")))
+        if not os.path.exists(os.path.dirname(csv_file)):
+            os.makedirs(os.path.dirname(csv_file))
+
+        taskWidgets = self.getTaskWidgets()
+
+        with open(csv_file, 'wb') as csvfile:
+            header = ["Task", "Start", "End", "Elapsed"]
+            writer = csv.DictWriter(csvfile, fieldnames=header)
+            writer.writeheader()
+            for taskWidget in taskWidgets:
+                writer.writerow({
+                    'Task': taskWidget.getTaskName(),
+                    'Start': taskWidget.started().strftime("%Y-%m-%d %H:%M:%S"),
+                    'End': taskWidget.ended().strftime("%Y-%m-%d %H:%M:%S"),
+                    'Elapsed': utils.timeToString(taskWidget.elapsed(), inputUnit='ms', minUnit='s')
+                })
+
+        QtGui.QMessageBox.information(self, "Export Tasks To CSV", "CSV File Created:\n%s" % csv_file)
+        os.system(csv_file)
 
     def showTaskSummary(self):
         taskWidgets = self.getTaskWidgets()
