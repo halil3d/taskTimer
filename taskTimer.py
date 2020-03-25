@@ -11,6 +11,10 @@ import utils
 
 
 # TODO: Error handle time edit values with style/poup
+# TODO: Numpad +/- for hotkeys too
+# TODO: Deactivated styling for paused tasks
+# TODO: Add splitting of tasks - Split a long task into many smaller elapsed tasks
+# TODO: Change start/end time to added/updated as this is more accurate terminology
 
 
 class TaskTimer(QtGui.QWidget):
@@ -569,6 +573,7 @@ class TaskWidget(QtGui.QWidget):
                 options=[{
                     'color': 'green'
                 }]), "")
+        self.editElapsedButton.setToolTip("Confirm Time")
         self.timerWidget = TimerWidget(self)
         bars = qtawesome.icon('mdi.drag')
         pixmap = bars.pixmap(24, 24)
@@ -666,6 +671,12 @@ class TaskWidget(QtGui.QWidget):
                 days, remainder = divmod(elapsed, utils._timeMultiplier('days', 'ms'))
                 if not days:
                     self.setElapsed(elapsed)
+        else:
+            pass
+            # TODO: Show invalid tooltip /style
+            # self.editElapsedWidget.setStyleSheet(r"QLineEdit {background-color: #ffe4e4; border: 1px solid #f66}")
+            # print self.editElapsedWidget.toolTip()  # .showText(self.editElapsedWidget.pos(), "Time is not valid.")
+            # return
 
         self.editElapsedWidget.setText("")
         self.editElapsedWidget.hide()
