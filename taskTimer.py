@@ -193,6 +193,8 @@ class TaskTimer(QtGui.QWidget):
         self.listWidget.addTaskSignal.connect(self.addTask)
         self.listWidget.roundUpOrAddTaskSignal.connect(self.roundUpOrAddTask)
         self.listWidget.toggleTasksSignal.connect(self.toggleTasks)
+        self.listWidget.mergeTasksSignal.connect(self.mergeTasks)
+        self.listWidget.removeTasksSignal.connect(self.removeTasks)
 
     @property
     def taskTextWidget(self):
