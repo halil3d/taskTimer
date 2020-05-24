@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from PySide import QtCore
-from PySide import QtGui
 from functools import partial
-import qtawesome
-# from . import utils
-import utils
 
+import qtawesome
+from PySide import QtCore, QtGui
+
+import utils
 
 # TODO: Error handle time edit values with style/poup
 # TODO: Numpad +/- for hotkeys too
@@ -18,11 +17,7 @@ import utils
 
 
 class TaskTimer(QtGui.QWidget):
-    def __init__(self,
-                 parent=None,
-                 taskTextWidget=None,
-                 exportTasksCallback=None,
-                 *args, **kwargs):
+    def __init__(self, taskTextWidget=None, exportTasksCallback=None, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self._totalTimerID = None
         self._mousePressed = None
@@ -30,103 +25,112 @@ class TaskTimer(QtGui.QWidget):
         self._taskTextWidget = taskTextWidget
         self._exportTasksCallback = exportTasksCallback
         self.taskSummary = None
-
         self.listWidget = TaskListWidget(self)
         self.totalTimeWidget = TimerWidget(self)
         # self.totalTimeLabel = QtGui.QLabel()
         self.round15MinsIcon = qtawesome.icon(
-            'mdi.timelapse',
-            'mdi.numeric-1',
-            'mdi.numeric-5',
-            'mdi.alpha-m',
-            options=[{
-                'offset': (-0.35, 0)
-            }, {
-                'offset': (-0.05, 0),
-                'scale_factor': 1.5
-            }, {
-                'offset': (0.15, 0),
-                'scale_factor': 1.5
-            }, {
-                'offset': (0.4, 0),
-                'scale_factor': 1.5
-            }])
+            "mdi.timelapse",
+            "mdi.numeric-1",
+            "mdi.numeric-5",
+            "mdi.alpha-m",
+            options=[
+                {"offset": (-0.35, 0)},
+                {"offset": (-0.05, 0), "scale_factor": 1.5},
+                {"offset": (0.15, 0), "scale_factor": 1.5},
+                {"offset": (0.4, 0), "scale_factor": 1.5},
+            ],
+        )
 
         self.round30MinsIcon = qtawesome.icon(
-            'mdi.timelapse',
-            'mdi.numeric-3',
-            'mdi.numeric-0',
-            'mdi.alpha-m',
-            options=[{
-                'offset': (-0.35, 0)
-            }, {
-                'offset': (-0.05, 0),
-                'scale_factor': 1.5
-            }, {
-                'offset': (0.15, 0),
-                'scale_factor': 1.5
-            }, {
-                'offset': (0.4, 0),
-                'scale_factor': 1.5
-            }])
+            "mdi.timelapse",
+            "mdi.numeric-3",
+            "mdi.numeric-0",
+            "mdi.alpha-m",
+            options=[
+                {"offset": (-0.35, 0)},
+                {"offset": (-0.05, 0), "scale_factor": 1.5},
+                {"offset": (0.15, 0), "scale_factor": 1.5},
+                {"offset": (0.4, 0), "scale_factor": 1.5},
+            ],
+        )
 
         self.roundHourIcon = qtawesome.icon(
-            'mdi.timelapse',
-            'mdi.numeric-1',
-            'mdi.alpha-h',
-            options=[{
-                'offset': (-0.2, 0)
-            }, {
-                'offset': (0.15, 0),
-                'scale_factor': 1.5
-            }, {
-                'offset': (0.4, 0),
-                'scale_factor': 1.5
-            }])
+            "mdi.timelapse",
+            "mdi.numeric-1",
+            "mdi.alpha-h",
+            options=[
+                {"offset": (-0.2, 0)},
+                {"offset": (0.15, 0), "scale_factor": 1.5},
+                {"offset": (0.4, 0), "scale_factor": 1.5},
+            ],
+        )
 
         self.roundHourButton = QtGui.QPushButton(self.roundHourIcon, "")
         self.round30MinsButton = QtGui.QPushButton(self.round30MinsIcon, "")
         self.round15MinsButton = QtGui.QPushButton(self.round15MinsIcon, "")
-        self.minimizedButton = QtGui.QPushButton(qtawesome.icon('mdi.window-minimize'), "")
-        self.closeButton = QtGui.QPushButton(qtawesome.icon('mdi.window-close'), "")
-        self.newTaskButton = QtGui.QPushButton(qtawesome.icon('mdi.alarm-plus'), "")
-        self.removeTasksButton = QtGui.QPushButton(qtawesome.icon('mdi.alarm-off'), "")
-        self.mergeTasksButton = QtGui.QPushButton(qtawesome.icon('mdi.alarm-multiple'), "")
-        self.toggleTasksButton = QtGui.QPushButton(qtawesome.icon('mdi.alarm-snooze'), "")
-        self.exportTasksButton = QtGui.QPushButton(qtawesome.icon('mdi.cloud-upload'), "")
+        self.minimizedButton = QtGui.QPushButton(
+            qtawesome.icon("mdi.window-minimize"), ""
+        )
+        self.closeButton = QtGui.QPushButton(qtawesome.icon("mdi.window-close"), "")
+        self.newTaskButton = QtGui.QPushButton(qtawesome.icon("mdi.alarm-plus"), "")
+        self.removeTasksButton = QtGui.QPushButton(qtawesome.icon("mdi.alarm-off"), "")
+        self.mergeTasksButton = QtGui.QPushButton(
+            qtawesome.icon("mdi.alarm-multiple"), ""
+        )
+        self.toggleTasksButton = QtGui.QPushButton(
+            qtawesome.icon("mdi.alarm-snooze"), ""
+        )
+        self.exportTasksButton = QtGui.QPushButton(
+            qtawesome.icon("mdi.cloud-upload"), ""
+        )
         self.setupUI()
 
     def setupUI(self):
+
         self.minimizedButton.setFixedSize(16, 16)
         self.minimizedButton.setFlat(True)
         self.closeButton.setFixedSize(16, 16)
         self.closeButton.setFlat(True)
 
         # self.newTaskButton.setFixedSize(36, 32)
-        self.newTaskButton.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        self.newTaskButton.setSizePolicy(
+            QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed
+        )
         self.newTaskButton.setToolTip("Add a new task")
         self.mergeTasksButton.setFixedSize(36, 32)
         self.mergeTasksButton.setEnabled(False)
         self.mergeTasksButton.setToolTip("Merge selected tasks")
         self.removeTasksButton.setFixedSize(36, 32)
         self.removeTasksButton.setEnabled(False)
-        self.removeTasksButton.setToolTip("Remove selected task\n-- or --\nRemove last task")
+        self.removeTasksButton.setToolTip(
+            "Remove selected task\n-- or --\nRemove last task"
+        )
         # self.toggleTasksButton.setFixedSize(36, 32)
         self.toggleTasksButton.setEnabled(False)
-        self.toggleTasksButton.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
-        self.toggleTasksButton.setToolTip("Pause / Resume selected tasks\n-- or --\nPause / Resume last task")
+        self.toggleTasksButton.setSizePolicy(
+            QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed
+        )
+        self.toggleTasksButton.setToolTip(
+            "Pause / Resume selected tasks\n-- or --\nPause / Resume last task"
+        )
         self.roundHourButton.setFixedSize(46, 32)
         self.roundHourButton.setIconSize(QtCore.QSize(30, 16))
         self.roundHourButton.setEnabled(True)
-        self.roundHourButton.setToolTip("Add a new task with 1 hour preset\n-- or --\nRound selected to nearest hour")
+        self.roundHourButton.setToolTip(
+            "Add a new task with 1 hour preset\n-- or --\nRound selected to nearest hour"
+        )
         self.round30MinsButton.setFixedSize(54, 32)
         self.round30MinsButton.setIconSize(QtCore.QSize(36, 16))
         self.round30MinsButton.setEnabled(True)
-        self.round30MinsButton.setToolTip("Add a new task with 30 minute preset\n-- or --\nRound selected to nearest 30 minutes")
+        self.round30MinsButton.setToolTip(
+            "Add a new task with 30 minute preset\n-- or --\nRound selected to nearest 30 minutes"
+        )
         self.round15MinsButton.setFixedSize(54, 32)
         self.round15MinsButton.setIconSize(QtCore.QSize(36, 16))
         self.round15MinsButton.setEnabled(True)
-        self.round15MinsButton.setToolTip("Add a new task with 15 minute preset\n-- or --\nRound selected to nearest 15 minutes")
+        self.round15MinsButton.setToolTip(
+            "Add a new task with 15 minute preset\n-- or --\nRound selected to nearest 15 minutes"
+        )
         # self.exportTasksButton.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         self.exportTasksButton.setMinimumHeight(32)
         # self.exportTasksButton.setIconSize(QtCore.QSize(36, 32))
@@ -138,7 +142,9 @@ class TaskTimer(QtGui.QWidget):
         x, y, w, h = 100, 100, 500, 400
         self.setGeometry(x, y, w, h)
         self.setWindowTitle("Task Timer")
-        flags = QtCore.Qt.WindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
+        flags = QtCore.Qt.WindowFlags(
+            QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint
+        )
         self.setWindowFlags(flags)
 
         sizegrip = QtGui.QSizeGrip(self)
@@ -169,7 +175,9 @@ class TaskTimer(QtGui.QWidget):
         self.mainLayout.addLayout(self.middleButtonLayout)
         self.middleButtonLayout.addWidget(self.newTaskButton)
         self.middleButtonLayout.addWidget(self.toggleTasksButton)
-        self.middleButtonLayout.addWidget(sizegrip, 0, QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight)
+        self.middleButtonLayout.addWidget(
+            sizegrip, 0, QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight
+        )
 
         # self.bottomButtonLayout = QtGui.QHBoxLayout()
         # self.mainLayout.addLayout(self.bottomButtonLayout)
@@ -216,11 +224,15 @@ class TaskTimer(QtGui.QWidget):
 
     def exportTasksDefault(self):
         menu = QtGui.QMenu(self)
-        action = QtGui.QAction(qtawesome.icon('mdi.file-document'), 'Export To CSV', self)
+        action = QtGui.QAction(
+            qtawesome.icon("mdi.file-document"), "Export To CSV", self
+        )
         action.activated.connect(self.exportTasksToCSV)
         menu.addAction(action)
 
-        action = QtGui.QAction(qtawesome.icon('mdi.clipboard-text'), 'Show Summary', self)
+        action = QtGui.QAction(
+            qtawesome.icon("mdi.clipboard-text"), "Show Summary", self
+        )
         action.activated.connect(self.showTaskSummary)
         menu.addAction(action)
 
@@ -232,29 +244,36 @@ class TaskTimer(QtGui.QWidget):
         import os
         import csv
         import time
-        import datetime
 
         d = datetime.datetime.fromtimestamp(time.time())
 
-        csv_file = os.path.expanduser('~/.taskTimer/%s_tasktimer.csv' % (d.strftime("%Y-%m-%d_%H%M%S")))
+        csv_file = os.path.expanduser(
+            "~/.taskTimer/%s_tasktimer.csv" % (d.strftime("%Y-%m-%d_%H%M%S"))
+        )
         if not os.path.exists(os.path.dirname(csv_file)):
             os.makedirs(os.path.dirname(csv_file))
 
         taskWidgets = self.getTaskWidgets()
 
-        with open(csv_file, 'wb') as csvfile:
+        with open(csv_file, "wb") as csvfile:
             header = ["Task", "Start", "End", "Elapsed"]
             writer = csv.DictWriter(csvfile, fieldnames=header)
             writer.writeheader()
             for taskWidget in taskWidgets:
-                writer.writerow({
-                    'Task': taskWidget.getTaskName(),
-                    'Start': taskWidget.started().strftime("%Y-%m-%d %H:%M:%S"),
-                    'End': taskWidget.ended().strftime("%Y-%m-%d %H:%M:%S"),
-                    'Elapsed': utils.timeToString(taskWidget.elapsed(), inputUnit='ms', minUnit='s')
-                })
+                writer.writerow(
+                    {
+                        "Task": taskWidget.getTaskName(),
+                        "Start": taskWidget.started().strftime("%Y-%m-%d %H:%M:%S"),
+                        "End": taskWidget.ended().strftime("%Y-%m-%d %H:%M:%S"),
+                        "Elapsed": utils.timeToString(
+                            taskWidget.elapsed(), inputUnit="ms", minUnit="s"
+                        ),
+                    }
+                )
 
-        QtGui.QMessageBox.information(self, "Export Tasks To CSV", "CSV File Created:\n%s" % csv_file)
+        QtGui.QMessageBox.information(
+            self, "Export Tasks To CSV", "CSV File Created:\n%s" % csv_file
+        )
         os.system(csv_file)
 
     def showTaskSummary(self):
@@ -363,7 +382,12 @@ class TaskTimer(QtGui.QWidget):
                 return
             taskWidget.toggle()
         else:
-            if any([self.listWidget.itemWidget(taskItem).isActive() for taskItem in selected]):
+            if any(
+                [
+                    self.listWidget.itemWidget(taskItem).isActive()
+                    for taskItem in selected
+                ]
+            ):
                 for taskItem in selected:
                     taskWidget = self.listWidget.itemWidget(taskItem)
                     taskWidget.stop()
@@ -416,9 +440,9 @@ class TaskTimer(QtGui.QWidget):
             self.round15MinsButton.setEnabled(False)
 
         if any([self.listWidget.itemWidget(x).isActive() for x in selected]):
-            self.toggleTasksButton.setIcon(qtawesome.icon('mdi.alarm-snooze'))
+            self.toggleTasksButton.setIcon(qtawesome.icon("mdi.alarm-snooze"))
         else:
-            self.toggleTasksButton.setIcon(qtawesome.icon('mdi.alarm-check'))
+            self.toggleTasksButton.setIcon(qtawesome.icon("mdi.alarm-check"))
 
     def roundUpOrAddTask(self, minutes, taskItem=None):
         if taskItem:
@@ -427,17 +451,21 @@ class TaskTimer(QtGui.QWidget):
             selected = self.listWidget.selectedItems()
 
         if not selected:
-            self.addTask(utils.convertTime(minutes, 'mins', 'ms'))
+            self.addTask(utils.convertTime(minutes, "mins", "ms"))
             return
 
         for taskItem in selected:
             taskWidget = self.listWidget.itemWidget(taskItem)
             elapsed = taskWidget.timerWidget.elapsed()
-            elapsedBlock, roundUp = divmod(elapsed, minutes * utils._timeMultiplier('mins', 'ms'))
+            elapsedBlock, roundUp = divmod(
+                elapsed, minutes * utils.timeMultiplier("mins", "ms")
+            )
             if roundUp:
                 elapsedBlock += 1
 
-            taskWidget.timerWidget.setElapsed(utils.convertTime(elapsedBlock * minutes, 'mins', 'ms'))
+            taskWidget.timerWidget.setElapsed(
+                utils.convertTime(elapsedBlock * minutes, "mins", "ms")
+            )
 
         self.changeButtonStates()
 
@@ -448,7 +476,7 @@ class TaskTimer(QtGui.QWidget):
             taskWidget = self.listWidget.itemWidget(taskItem)
             totalElapsed += taskWidget.elapsed()
         self.totalTimeWidget.displayMilliseconds(totalElapsed)
-        # seconds, remainder = divmod(totalElapsed, utils._timeMultiplier('secs', 'ms'))
+        # seconds, remainder = divmod(totalElapsed, utils.timeMultiplier('secs', 'ms'))
         # if seconds:
         #     self.totalTimeLabel.setText(utils.timeToString(seconds, inputUnit='secs'))
 
@@ -460,28 +488,27 @@ class TaskListWidget(QtGui.QListWidget):
     mergeTasksSignal = QtCore.Signal()
     removeTasksSignal = QtCore.Signal()
 
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
-
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.RightButton:
             menu = QtGui.QMenu(self)
 
             if not self.childAt(event.pos()).__class__ in [TaskWidget, TimerWidget]:
-                action = QtGui.QAction(qtawesome.icon('mdi.alarm-check'), 'Add Task', self)
+                action = QtGui.QAction(
+                    qtawesome.icon("mdi.alarm-check"), "Add Task", self
+                )
                 action.activated.connect(self.addTaskSignal.emit)
                 menu.addAction(action)
 
-                presetsMenu = menu.addMenu(qtawesome.icon('mdi.menu'), 'Add Presets')
-                action = QtGui.QAction(qtawesome.icon('mdi.timelapse'), '15mins', self)
+                presetsMenu = menu.addMenu(qtawesome.icon("mdi.menu"), "Add Presets")
+                action = QtGui.QAction(qtawesome.icon("mdi.timelapse"), "15mins", self)
                 action.activated.connect(partial(self.roundUpOrAddTaskSignal.emit, 15))
                 presetsMenu.addAction(action)
 
-                action = QtGui.QAction(qtawesome.icon('mdi.timelapse'), '30mins', self)
+                action = QtGui.QAction(qtawesome.icon("mdi.timelapse"), "30mins", self)
                 action.activated.connect(partial(self.roundUpOrAddTaskSignal.emit, 30))
                 presetsMenu.addAction(action)
 
-                action = QtGui.QAction(qtawesome.icon('mdi.timelapse'), '1hr', self)
+                action = QtGui.QAction(qtawesome.icon("mdi.timelapse"), "1hr", self)
                 action.activated.connect(partial(self.roundUpOrAddTaskSignal.emit, 60))
                 presetsMenu.addAction(action)
                 menu.popup(self.mapToGlobal(event.pos()))
@@ -494,67 +521,111 @@ class TaskListWidget(QtGui.QListWidget):
                 if not taskWidget:
                     return
                 if taskWidget.isActive():
-                    action = QtGui.QAction(qtawesome.icon('mdi.alarm-snooze'), 'Pause Task', self)
+                    action = QtGui.QAction(
+                        qtawesome.icon("mdi.alarm-snooze"), "Pause Task", self
+                    )
                     action.activated.connect(taskWidget.stop)
                     menu.addAction(action)
                 else:
-                    action = QtGui.QAction(qtawesome.icon('mdi.alarm-check'), 'Resume Task', self)
+                    action = QtGui.QAction(
+                        qtawesome.icon("mdi.alarm-check"), "Resume Task", self
+                    )
                     action.activated.connect(taskWidget.start)
                     menu.addAction(action)
 
-                action = QtGui.QAction(qtawesome.icon('mdi.circle-edit-outline'), 'Edit Task Time', self)
+                action = QtGui.QAction(
+                    qtawesome.icon("mdi.circle-edit-outline"), "Edit Task Time", self
+                )
                 action.activated.connect(taskWidget.showEditElapsed)
                 menu.addAction(action)
 
-                action = QtGui.QAction(qtawesome.icon('mdi.alarm-off'), 'Remove Task', self)
+                action = QtGui.QAction(
+                    qtawesome.icon("mdi.alarm-off"), "Remove Task", self
+                )
+
                 def _removeItem(taskItem):
                     row = self.row(taskItem)
                     taskItem = self.takeItem(row)
                     del taskItem
+
                 action.activated.connect(partial(_removeItem, taskItem))
                 menu.addAction(action)
 
-                roundUpMenu = menu.addMenu(qtawesome.icon('mdi.menu'), 'Round Up Time')
-                action = QtGui.QAction(qtawesome.icon('mdi.timelapse'), 'To 15mins', self)
-                action.activated.connect(partial(self.roundUpOrAddTaskSignal.emit, 15, taskItem=self.itemAt(event.pos())))
+                roundUpMenu = menu.addMenu(qtawesome.icon("mdi.menu"), "Round Up Time")
+                action = QtGui.QAction(
+                    qtawesome.icon("mdi.timelapse"), "To 15mins", self
+                )
+                action.activated.connect(
+                    partial(
+                        self.roundUpOrAddTaskSignal.emit,
+                        15,
+                        taskItem=self.itemAt(event.pos()),
+                    )
+                )
                 roundUpMenu.addAction(action)
 
-                action = QtGui.QAction(qtawesome.icon('mdi.timelapse'), 'To 30mins', self)
-                action.activated.connect(partial(self.roundUpOrAddTaskSignal.emit, 30, taskItem=self.itemAt(event.pos())))
+                action = QtGui.QAction(
+                    qtawesome.icon("mdi.timelapse"), "To 30mins", self
+                )
+                action.activated.connect(
+                    partial(
+                        self.roundUpOrAddTaskSignal.emit,
+                        30,
+                        taskItem=self.itemAt(event.pos()),
+                    )
+                )
                 roundUpMenu.addAction(action)
 
-                action = QtGui.QAction(qtawesome.icon('mdi.timelapse'), 'To 1hr', self)
-                action.activated.connect(partial(self.roundUpOrAddTaskSignal.emit, 60, taskItem=self.itemAt(event.pos())))
+                action = QtGui.QAction(qtawesome.icon("mdi.timelapse"), "To 1hr", self)
+                action.activated.connect(
+                    partial(
+                        self.roundUpOrAddTaskSignal.emit,
+                        60,
+                        taskItem=self.itemAt(event.pos()),
+                    )
+                )
                 roundUpMenu.addAction(action)
 
             elif len(selected) > 1:
                 if any([self.itemWidget(item).isActive() for item in selected]):
-                    action = QtGui.QAction(qtawesome.icon('mdi.alarm-snooze'), 'Pause Tasks', self)
+                    action = QtGui.QAction(
+                        qtawesome.icon("mdi.alarm-snooze"), "Pause Tasks", self
+                    )
                     action.activated.connect(self.toggleTasksSignal.emit)
                     menu.addAction(action)
                 else:
-                    action = QtGui.QAction(qtawesome.icon('mdi.alarm-check'), 'Resume Tasks', self)
+                    action = QtGui.QAction(
+                        qtawesome.icon("mdi.alarm-check"), "Resume Tasks", self
+                    )
                     action.activated.connect(self.toggleTasksSignal.emit)
                     menu.addAction(action)
 
-                action = QtGui.QAction(qtawesome.icon('mdi.alarm-multiple'), 'Merge Tasks', self)
+                action = QtGui.QAction(
+                    qtawesome.icon("mdi.alarm-multiple"), "Merge Tasks", self
+                )
                 action.activated.connect(self.mergeTasksSignal.emit)
                 menu.addAction(action)
 
-                action = QtGui.QAction(qtawesome.icon('mdi.alarm-off'), 'Remove Tasks', self)
+                action = QtGui.QAction(
+                    qtawesome.icon("mdi.alarm-off"), "Remove Tasks", self
+                )
                 action.activated.connect(self.removeTasksSignal.emit)
                 menu.addAction(action)
 
-                roundUpMenu = menu.addMenu(qtawesome.icon('mdi.menu'), 'Round Up Time')
-                action = QtGui.QAction(qtawesome.icon('mdi.timelapse'), 'To 15mins', self)
+                roundUpMenu = menu.addMenu(qtawesome.icon("mdi.menu"), "Round Up Time")
+                action = QtGui.QAction(
+                    qtawesome.icon("mdi.timelapse"), "To 15mins", self
+                )
                 action.activated.connect(partial(self.roundUpOrAddTaskSignal.emit, 15))
                 roundUpMenu.addAction(action)
 
-                action = QtGui.QAction(qtawesome.icon('mdi.timelapse'), 'To 30mins', self)
+                action = QtGui.QAction(
+                    qtawesome.icon("mdi.timelapse"), "To 30mins", self
+                )
                 action.activated.connect(partial(self.roundUpOrAddTaskSignal.emit, 30))
                 roundUpMenu.addAction(action)
 
-                action = QtGui.QAction(qtawesome.icon('mdi.timelapse'), 'To 1hr', self)
+                action = QtGui.QAction(qtawesome.icon("mdi.timelapse"), "To 1hr", self)
                 action.activated.connect(partial(self.roundUpOrAddTaskSignal.emit, 60))
                 roundUpMenu.addAction(action)
 
@@ -563,21 +634,19 @@ class TaskListWidget(QtGui.QListWidget):
 
         super(self.__class__, self).mousePressEvent(event)
 
+
 class TaskWidget(QtGui.QWidget):
-    def __init__(self, parent=None, taskTextWidget=None, *args, **kwargs):
+    def __init__(self, taskTextWidget=None, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.taskTextWidget = taskTextWidget
 
         self.editElapsedWidget = QtGui.QLineEdit(self)
         self.editElapsedButton = QtGui.QPushButton(
-            qtawesome.icon(
-                'mdi.check',
-                options=[{
-                    'color': 'green'
-                }]), "")
+            qtawesome.icon("mdi.check", options=[{"color": "green"}]), ""
+        )
         self.editElapsedButton.setToolTip("Confirm Time")
         self.timerWidget = TimerWidget(self)
-        bars = qtawesome.icon('mdi.drag')
+        bars = qtawesome.icon("mdi.drag")
         pixmap = bars.pixmap(24, 24)
         self.moveLabel = QtGui.QLabel()
         self.moveLabel.setPixmap(pixmap)
@@ -668,9 +737,9 @@ class TaskWidget(QtGui.QWidget):
     def editElapsed(self):
         text = self.editElapsedWidget.text()
         if utils.isValidTimeString(text):
-            elapsed = utils.stringToTime(text, 'ms')
+            elapsed = utils.stringToTime(text, "ms")
             if elapsed:
-                days, remainder = divmod(elapsed, utils._timeMultiplier('days', 'ms'))
+                days, remainder = divmod(elapsed, utils.timeMultiplier("days", "ms"))
                 if not days:
                     self.setElapsed(elapsed)
         else:
@@ -702,7 +771,6 @@ class TaskWidget(QtGui.QWidget):
 
 
 class TimerWidget(QtGui.QLCDNumber):
-
     def __init__(self, parent=None, *argss, **kwargs):
         super(self.__class__, self).__init__(*argss, **kwargs)
         self._timerID = None
@@ -719,7 +787,9 @@ class TimerWidget(QtGui.QLCDNumber):
         self.setFixedHeight(24)
         self.setFixedWidth(120)
         self.setSegmentStyle(self.Flat)
-        self.setStyleSheet("QLCDNumber{color: rgb(40, 180, 33); background-color: rgb(50, 70, 50);}")
+        self.setStyleSheet(
+            "QLCDNumber{color: rgb(40, 180, 33); background-color: rgb(50, 70, 50);}"
+        )
 
     def isActive(self):
         if self._timerID:
@@ -741,18 +811,15 @@ class TimerWidget(QtGui.QLCDNumber):
         else:
             self.displayMilliseconds(value)
 
-    def editable(self):
-        return self._editable
-
-    def setEditable(self, boolean):
-        self._editable = boolean
-
     def start(self):
         if not self.isActive():
             self._timerID = self.startTimer(1)
         if not self._started:
             self._started = datetime.datetime.now()
         self._timer.start()
+        self.setStyleSheet(
+            "QLCDNumber{color: rgb(40, 180, 33); background-color: rgb(50, 70, 50);}"
+        )
 
     def started(self):
         return self._started
@@ -763,6 +830,10 @@ class TimerWidget(QtGui.QLCDNumber):
             self.killTimer(self._timerID)
             self._timerID = None
             self._ended = datetime.datetime.now()
+            self.setStyleSheet(
+                "QLCDNumber{color: rgb(100, 120, 92); background-color: rgb(50, 70, 50);}"
+            )
+
 
     def ended(self):
         if self._timerID:
@@ -784,13 +855,13 @@ class TimerWidget(QtGui.QLCDNumber):
             self.start()
 
     def displayMilliseconds(self, milliseconds):
-        days, remainder = divmod(milliseconds, utils._timeMultiplier('days', 'ms'))
+        days, remainder = divmod(milliseconds, utils.timeMultiplier("days", "ms"))
         if days:
             raise Exception("Cannot set a value > 24 hours.")
-        hours, remainder = divmod(remainder, utils._timeMultiplier('hours', 'ms'))
-        minutes, remainder = divmod(remainder, utils._timeMultiplier('mins', 'ms'))
-        seconds, remainder = divmod(remainder, utils._timeMultiplier('secs', 'ms'))
-        timestring = '{:02.0f}:{:02.0f}:{:02.0f}'.format(hours, minutes, seconds)
+        hours, remainder = divmod(remainder, utils.timeMultiplier("hours", "ms"))
+        minutes, remainder = divmod(remainder, utils.timeMultiplier("mins", "ms"))
+        seconds, remainder = divmod(remainder, utils.timeMultiplier("secs", "ms"))
+        timestring = "{:02.0f}:{:02.0f}:{:02.0f}".format(hours, minutes, seconds)
         self.display(timestring)
 
     def timerEvent(self, event):
@@ -799,14 +870,14 @@ class TimerWidget(QtGui.QLCDNumber):
 
 
 class TaskSummary(QtGui.QWidget):
-    def __init__(self, parent=None, taskWidgets=[], *args, **kwargs):
+    def __init__(self, taskWidgets=[], *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.taskWidgets = taskWidgets
         self._mousePressed = False
         self._mousePosition = None
 
         self.mainLayout = QtGui.QVBoxLayout(self)
-        self.closeButton = QtGui.QPushButton(qtawesome.icon('mdi.window-close'), "")
+        self.closeButton = QtGui.QPushButton(qtawesome.icon("mdi.window-close"), "")
         self.windowIconLayout = QtGui.QHBoxLayout()
         self.model = QtGui.QStandardItemModel(self)
         self.tableView = QtGui.QTableView(self)
@@ -814,7 +885,9 @@ class TaskSummary(QtGui.QWidget):
         self.setupUI()
 
     def setupUI(self):
-        flags = QtCore.Qt.WindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
+        flags = QtCore.Qt.WindowFlags(
+            QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint
+        )
         self.setWindowFlags(flags)
 
         x, y, w, h = 200, 200, 800, 300
@@ -834,7 +907,9 @@ class TaskSummary(QtGui.QWidget):
         self.mainLayout.addWidget(self.tableView)
 
         sizegrip = QtGui.QSizeGrip(self)
-        self.mainLayout.addWidget(sizegrip, 0, QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight)
+        self.mainLayout.addWidget(
+            sizegrip, 0, QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight
+        )
 
         headerRow = []
         for header in ["Task", "Start", "End", "Elapsed"]:
@@ -846,7 +921,11 @@ class TaskSummary(QtGui.QWidget):
                 QtGui.QStandardItem(taskWidget.getTaskName()),
                 QtGui.QStandardItem(taskWidget.started().strftime("%Y-%m-%d %H:%M:%S")),
                 QtGui.QStandardItem(taskWidget.ended().strftime("%Y-%m-%d %H:%M:%S")),
-                QtGui.QStandardItem(utils.timeToString(taskWidget.elapsed(), inputUnit='ms', minUnit='s'))
+                QtGui.QStandardItem(
+                    utils.timeToString(
+                        taskWidget.elapsed(), inputUnit="ms", minUnit="s"
+                    )
+                ),
             ]
             self.model.appendRow(rowItems)
 
@@ -885,6 +964,7 @@ class TaskTextWidgetDefault(TaskTextWidgetBase, QtGui.QLineEdit):
 
 if __name__ == "__main__":
     import sys
+
     app = QtGui.QApplication(sys.argv[1:])
     t = TaskTimer()
     t.show()
