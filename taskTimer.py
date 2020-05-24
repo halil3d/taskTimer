@@ -77,6 +77,7 @@ class TaskTimer(QtGui.QWidget):
         self.mergeTasksButton = QtGui.QPushButton(
             qtawesome.icon("mdi.alarm-multiple"), ""
         )
+        self.splitTaskButton = QtGui.QPushButton(qtawesome.icon("mdi.source-fork"), "")
         self.toggleTasksButton = QtGui.QPushButton(
             qtawesome.icon("mdi.alarm-snooze"), ""
         )
@@ -96,14 +97,19 @@ class TaskTimer(QtGui.QWidget):
         self.newTaskButton.setSizePolicy(
             QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed
         )
-        self.newTaskButton.setToolTip("Add a new task")
+        self.newTaskButton.setToolTip("Add a new task\n(Ctrl + =/+)")
         self.mergeTasksButton.setFixedSize(36, 32)
         self.mergeTasksButton.setEnabled(False)
-        self.mergeTasksButton.setToolTip("Merge selected tasks")
+        self.mergeTasksButton.setToolTip("Merge selected tasks\n(M)")
+
+        self.splitTaskButton.setFixedSize(36, 32)
+        self.splitTaskButton.setEnabled(False)
+        self.splitTaskButton.setToolTip("Split selected task\n(S)")
+
         self.removeTasksButton.setFixedSize(36, 32)
         self.removeTasksButton.setEnabled(False)
         self.removeTasksButton.setToolTip(
-            "Remove selected task\n-- or --\nRemove last task"
+            "Remove selected task\n-- or --\nRemove last task\n(Ctrl + -)"
         )
         # self.toggleTasksButton.setFixedSize(36, 32)
         self.toggleTasksButton.setEnabled(False)
@@ -111,35 +117,52 @@ class TaskTimer(QtGui.QWidget):
             QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed
         )
         self.toggleTasksButton.setToolTip(
-            "Pause / Resume selected tasks\n-- or --\nPause / Resume last task"
+            "Pause / Resume selected tasks\n"
+            "-- or --\n"
+            "Pause / Resume last task\n"
+            "(Return)"
         )
         self.roundHourButton.setFixedSize(46, 32)
         self.roundHourButton.setIconSize(QtCore.QSize(30, 16))
         self.roundHourButton.setEnabled(True)
         self.roundHourButton.setToolTip(
-            "Add a new task with 1 hour preset\n-- or --\nRound selected to nearest hour"
+            "Add a new task with 1 hour preset\n"
+            "-- or --\n"
+            "Round selected to nearest hour\n"
+            "(Ctrl + 1)"
         )
         self.round30MinsButton.setFixedSize(54, 32)
         self.round30MinsButton.setIconSize(QtCore.QSize(36, 16))
         self.round30MinsButton.setEnabled(True)
         self.round30MinsButton.setToolTip(
-            "Add a new task with 30 minute preset\n-- or --\nRound selected to nearest 30 minutes"
+            "Add a new task with 30 minute preset\n"
+            "-- or --\n"
+            "Round selected to nearest 30 minutes\n"
+            "(Ctrl + 2)"
         )
         self.round15MinsButton.setFixedSize(54, 32)
         self.round15MinsButton.setIconSize(QtCore.QSize(36, 16))
         self.round15MinsButton.setEnabled(True)
         self.round15MinsButton.setToolTip(
-            "Add a new task with 15 minute preset\n-- or --\nRound selected to nearest 15 minutes"
+            "Add a new task with 15 minute preset\n"
+            "-- or --\n"
+            "Round selected to nearest 15 minutes\n"
+            "Ctrl + 3"
         )
         # self.exportTasksButton.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         self.exportTasksButton.setMinimumHeight(32)
         # self.exportTasksButton.setIconSize(QtCore.QSize(36, 32))
-        self.exportTasksButton.setToolTip("Preview / Export Tasks Summary")
+        self.exportTasksButton.setToolTip(
+            "Show Tasks Summary\n"
+            "-- or --\n"
+            "Export Tasks Summary\n"
+            "(Ctrl + E)"
+        )
 
         self.mainLayout = QtGui.QVBoxLayout()
         self.setLayout(self.mainLayout)
 
-        x, y, w, h = 100, 100, 500, 400
+        x, y, w, h = 700, 300, 500, 400
         self.setGeometry(x, y, w, h)
         self.setWindowTitle("Task Timer")
         flags = QtCore.Qt.WindowFlags(
@@ -164,6 +187,7 @@ class TaskTimer(QtGui.QWidget):
         self.topButtonLayout.addWidget(self.totalTimeWidget)
         # self.topButtonLayout.addWidget(self.totalTimeLabel)
         self.topButtonLayout.addStretch()
+        self.topButtonLayout.addWidget(self.splitTaskButton)
         self.topButtonLayout.addWidget(self.mergeTasksButton)
         self.topButtonLayout.addWidget(self.removeTasksButton)
         self.topButtonLayout.addWidget(self.roundHourButton)
@@ -190,6 +214,7 @@ class TaskTimer(QtGui.QWidget):
         self.newTaskButton.clicked.connect(self.addTask)
         self.removeTasksButton.clicked.connect(self.removeTasks)
         self.mergeTasksButton.clicked.connect(self.mergeTasks)
+        self.splitTaskButton.clicked.connect(self.splitTask)
         self.toggleTasksButton.clicked.connect(self.toggleTasks)
         self.roundHourButton.clicked.connect(partial(self.roundUpOrAddTask, 60))
         self.round30MinsButton.clicked.connect(partial(self.roundUpOrAddTask, 30))
@@ -225,18 +250,18 @@ class TaskTimer(QtGui.QWidget):
     def exportTasksDefault(self):
         menu = QtGui.QMenu(self)
         action = QtGui.QAction(
-            qtawesome.icon("mdi.file-document"), "Export To CSV", self
+            qtawesome.icon("mdi.file-document"), "&Export To CSV", self
         )
         action.activated.connect(self.exportTasksToCSV)
         menu.addAction(action)
 
         action = QtGui.QAction(
-            qtawesome.icon("mdi.clipboard-text"), "Show Summary", self
+            qtawesome.icon("mdi.clipboard-text"), "&Show Summary", self
         )
         action.activated.connect(self.showTaskSummary)
         menu.addAction(action)
 
-        p = self.sender().pos()
+        p = self.exportTasksButton.pos()
         menu.move(self.mapToParent(p).x(), self.mapToParent(p).y())
         menu.show()
 
@@ -278,17 +303,32 @@ class TaskTimer(QtGui.QWidget):
 
     def showTaskSummary(self):
         taskWidgets = self.getTaskWidgets()
-        self.taskSummary = TaskSummary(self, taskWidgets=taskWidgets)
+        self.taskSummary = TaskSummary(taskWidgets=taskWidgets)
         self.taskSummary.show()
 
     def keyPressEvent(self, event):
+        # Quit
         if event.modifiers() == QtCore.Qt.ControlModifier:
             if event.key() == QtCore.Qt.Key_Q:
                 self.close()
 
-        if event.key() == QtCore.Qt.Key_Equal:
+            if event.key() == QtCore.Qt.Key_1:
+                self.roundUpOrAddTask(60)
+
+            if event.key() == QtCore.Qt.Key_2:
+                self.roundUpOrAddTask(30)
+
+            if event.key() == QtCore.Qt.Key_3:
+                self.roundUpOrAddTask(15)
+
+            if event.key() == QtCore.Qt.Key_E:
+                self.exportTasksCallback()
+
+        # Add new Task
+        if event.key() in [QtCore.Qt.Key_Equal, QtCore.Qt.Key_Plus]:
             self.addTask()
 
+        # Remove Task(s)
         if event.key() == QtCore.Qt.Key_Minus:
             self.removeTasks()
 
@@ -372,6 +412,17 @@ class TaskTimer(QtGui.QWidget):
 
         self.changeButtonStates()
 
+    def splitTask(self):
+        selected = self.listWidget.selectedItems()
+        if not selected:
+            return
+
+        taskItem = selected[-1]
+        taskWidget = self.listWidget.itemWidget(taskItem)
+        taskWidget.showEditElapsed(split=True)
+
+        self.changeButtonStates()
+
     def toggleTasks(self):
         selected = self.listWidget.selectedItems()
         if not selected:
@@ -411,6 +462,7 @@ class TaskTimer(QtGui.QWidget):
         self.toggleTasksButton.setEnabled(True)
         self.removeTasksButton.setEnabled(True)
         self.mergeTasksButton.setEnabled(True)
+        self.splitTaskButton.setEnabled(True)
         self.roundHourButton.setEnabled(True)
         self.round30MinsButton.setEnabled(True)
         self.round15MinsButton.setEnabled(True)
@@ -418,6 +470,7 @@ class TaskTimer(QtGui.QWidget):
 
         if len(selected) < 1:
             self.mergeTasksButton.setEnabled(False)
+            self.splitTaskButton.setEnabled(False)
 
             lastIndex = self.listWidget.count() - 1
             taskItem = self.listWidget.item(lastIndex)
@@ -540,6 +593,12 @@ class TaskListWidget(QtGui.QListWidget):
                 menu.addAction(action)
 
                 action = QtGui.QAction(
+                    qtawesome.icon("mdi.source-fork"), "Split Task Time", self
+                )
+                action.activated.connect(partial(taskWidget.showEditElapsed, True))
+                menu.addAction(action)
+
+                action = QtGui.QAction(
                     qtawesome.icon("mdi.alarm-off"), "Remove Task", self
                 )
 
@@ -634,6 +693,37 @@ class TaskListWidget(QtGui.QListWidget):
 
         super(self.__class__, self).mousePressEvent(event)
 
+    def keyPressEvent(self, event):
+        selected = self.selectedItems()
+
+        # Merge Selected Tasks
+        if event.key() == QtCore.Qt.Key_M:
+            self.parent().mergeTasks()
+
+        if selected:
+            for i, taskItem in enumerate(selected, start=1):
+                taskWidget = self.itemWidget(taskItem)
+                if i == len(selected):
+                    # Edit Elapsed
+                    if event.key() == QtCore.Qt.Key_E:
+                        if not taskWidget.taskTextWidget.hasFocus():
+                            taskWidget.showEditElapsed()
+                    # Split Elapsed into new Task
+                    if event.key() == QtCore.Qt.Key_S:
+                        if not taskWidget.taskTextWidget.hasFocus():
+                            taskWidget.showEditElapsed(split=True)
+                    # Edit Tast Text
+                    if event.key() == QtCore.Qt.Key_T:
+                        if not taskWidget.taskTextWidget.hasFocus():
+                            taskWidget.taskTextWidget.setFocus()
+
+                # Pause / Resume Task
+                if event.key() in [QtCore.Qt.Key_Return]:
+                    if not taskWidget.taskTextWidget.hasFocus():
+                        taskWidget.toggle()
+
+        super(self.__class__, self).keyPressEvent(event)
+
 
 class TaskWidget(QtGui.QWidget):
     def __init__(self, taskTextWidget=None, *args, **kwargs):
@@ -669,7 +759,7 @@ class TaskWidget(QtGui.QWidget):
         self.mainLayout.addWidget(self.taskTextWidget)
         self.mainLayout.addWidget(self.moveLabel)
 
-        self.timerWidget.setToolTip("Double click to edit elapsed time")
+        self.timerWidget.setToolTip("Double click to edit elapsed time (E)")
         # self.buttonLayout = QtGui.QHBoxLayout()
         # self.mainLayout.addLayout(self.buttonLayout)
 
@@ -722,6 +812,9 @@ class TaskWidget(QtGui.QWidget):
     def started(self):
         return self.timerWidget.started()
 
+    def elapsed(self):
+        return self.timerWidget.elapsed()
+
     def stop(self):
         self.timerWidget.stop()
 
@@ -736,18 +829,42 @@ class TaskWidget(QtGui.QWidget):
 
     def editElapsed(self):
         text = self.editElapsedWidget.text()
-        if utils.isValidTimeString(text):
-            elapsed = utils.stringToTime(text, "ms")
-            if elapsed:
-                days, remainder = divmod(elapsed, utils.timeMultiplier("days", "ms"))
-                if not days:
-                    self.setElapsed(elapsed)
+        if text.startswith("split"):
+            text = text.partition("split")[-1].strip(":").strip()
+            if utils.isValidTimeString(text):
+                split_elapsed = utils.stringToTime(text, "ms")
+                if split_elapsed:
+                    days, remainder = divmod(
+                        split_elapsed, utils.timeMultiplier("days", "ms")
+                    )
+                    if not days:
+                        current_elapsed = self.elapsed() - split_elapsed
+                        if not current_elapsed >= 0:
+                            self.editElapsedWidget.setText("")
+                            self.editElapsedWidget.hide()
+                            self.editElapsedButton.hide()
+                            self.timerWidget.show()
+                            return
+
+                        self.stop()
+                        self.setElapsed(current_elapsed)
+                        # TODO: emit signal instead of expecting parent
+                        self.parent().parent().parent().addTask(split_elapsed)
         else:
-            pass
-            # TODO: Show invalid tooltip /style
-            # self.editElapsedWidget.setStyleSheet(r"QLineEdit {background-color: #ffe4e4; border: 1px solid #f66}")
-            # print self.editElapsedWidget.toolTip()  # .showText(self.editElapsedWidget.pos(), "Time is not valid.")
-            # return
+            if utils.isValidTimeString(text):
+                elapsed = utils.stringToTime(text, "ms")
+                if elapsed:
+                    days, remainder = divmod(
+                        elapsed, utils.timeMultiplier("days", "ms")
+                    )
+                    if not days:
+                        self.setElapsed(elapsed)
+            else:
+                pass
+                # TODO: Show invalid tooltip /style
+                # self.editElapsedWidget.setStyleSheet(r"QLineEdit {background-color: #ffe4e4; border: 1px solid #f66}")
+                # print self.editElapsedWidget.toolTip()  # .showText(self.editElapsedWidget.pos(), "Time is not valid.")
+                # return
 
         self.editElapsedWidget.setText("")
         self.editElapsedWidget.hide()
@@ -758,16 +875,23 @@ class TaskWidget(QtGui.QWidget):
         if self.childAt(event.pos()) == self.timerWidget:
             self.showEditElapsed()
 
-    def showEditElapsed(self):
+    def showEditElapsed(self, split=False):
         self.timerWidget.hide()
+        if split:
+            self.editElapsedWidget.setText("split: ")
         self.editElapsedWidget.show()
         self.editElapsedWidget.setFocus()
         self.editElapsedButton.show()
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Return:
+            # Confirm Edit Elapsed Text
             if self.editElapsedWidget.hasFocus():
                 self.editElapsedButton.click()
+            # Confirm Task Text
+            if self.taskTextWidget.hasFocus():
+                self.taskTextWidget.clearFocus()
+                self.parent().setFocus()
 
 
 class TimerWidget(QtGui.QLCDNumber):
@@ -822,7 +946,9 @@ class TimerWidget(QtGui.QLCDNumber):
         )
 
     def started(self):
-        return self._started
+        # FIXME: Need to do something smart when timer has been created with set
+        # time and was never activated, returning now() for now...
+        return self._started or datetime.datetime.now()
 
     def stop(self):
         if self._timerID:
@@ -830,15 +956,16 @@ class TimerWidget(QtGui.QLCDNumber):
             self.killTimer(self._timerID)
             self._timerID = None
             self._ended = datetime.datetime.now()
-            self.setStyleSheet(
-                "QLCDNumber{color: rgb(100, 120, 92); background-color: rgb(50, 70, 50);}"
-            )
-
+        self.setStyleSheet(
+            "QLCDNumber{color: rgb(100, 120, 92); background-color: rgb(50, 70, 50);}"
+        )
 
     def ended(self):
         if self._timerID:
             self._ended = datetime.datetime.now()
-        return self._ended
+        # FIXME: Need to do something smart when timer has been created with set
+        # time and was never activated, returning now() for now...
+        return self._ended or datetime.datetime.now()
 
     def reset(self):
         if self._timerID:
