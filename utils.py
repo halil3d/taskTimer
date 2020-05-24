@@ -5,7 +5,7 @@ def convertTime(value, src_unit, dst_unit):
     """
     Convert a unit of time from a source unit to a destination unit
     """
-    newValue = float(value) * _timeMultiplier(src_unit, dst_unit)
+    newValue = float(value) * timeMultiplier(src_unit, dst_unit)
     return newValue
 
 
@@ -129,7 +129,7 @@ def _timeStringToDict(timeStr):
     return timeDict
 
 
-def _timeMultiplier(src_unit='hr', dst_unit='sec'):
+def timeMultiplier(src_unit='hr', dst_unit='sec'):
     """
     Return a multiplier between two time units.
     """
@@ -190,10 +190,10 @@ if __name__ == "__main__":
     print "*" * 80
     elapsed = stringToTime('1h 29mins', 'ms')
     print elapsed
-    hours, remainder = divmod(elapsed, _timeMultiplier('hours', 'ms'))
-    halfHour, remainder = divmod(remainder, _timeMultiplier('hours', 'ms') / 2)
+    hours, remainder = divmod(elapsed, timeMultiplier('hours', 'ms'))
+    halfHour, remainder = divmod(remainder, timeMultiplier('hours', 'ms') / 2)
     print hours
     print halfHour
-    print _timeMultiplier('hours', 'ms') / 2
+    print timeMultiplier('hours', 'ms') / 2
 
     print isValidTimeString(None)
