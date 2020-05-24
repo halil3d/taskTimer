@@ -10,9 +10,6 @@ from PySide import QtCore, QtGui
 import utils
 
 # TODO: Error handle time edit values with style/poup
-# TODO: Numpad +/- for hotkeys too
-# TODO: Deactivated styling for paused tasks
-# TODO: Add splitting of tasks - Split a long task into many smaller elapsed tasks
 # TODO: Change start/end time to added/updated as this is more accurate terminology
 
 
