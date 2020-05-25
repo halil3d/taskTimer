@@ -11,6 +11,7 @@ import utils
 
 # TODO: Error handle time edit values with style/poup
 # TODO: Change start/end time to added/updated as this is more accurate terminology
+# TODO: Page up/down hotkeys for moving selected TaskWidget order in listview
 
 
 class TaskTimer(QtGui.QWidget):
@@ -217,7 +218,7 @@ class TaskTimer(QtGui.QWidget):
         self.round30MinsButton.clicked.connect(partial(self.roundUpOrAddTask, 30))
         self.round15MinsButton.clicked.connect(partial(self.roundUpOrAddTask, 15))
         self.exportTasksButton.clicked.connect(self.exportTasksCallback)
-        self.listWidget.itemSelectionChanged.connect(self.changeButtonStates)
+        self.listWidget.itemSelectionChanged.connect(self.updateButtonStates)
 
         # Signal connections
         self.listWidget.addTaskSignal.connect(self.addTask)
@@ -364,7 +365,7 @@ class TaskTimer(QtGui.QWidget):
         if not self._totalTimerID:
             self.startTimer(1)
 
-        self.changeButtonStates()
+        self.updateButtonStates()
         taskWidget.taskTextWidget.setFocus()
 
     def removeTasks(self):
@@ -379,7 +380,7 @@ class TaskTimer(QtGui.QWidget):
             taskItem = self.listWidget.takeItem(row)
             del taskItem
 
-        self.changeButtonStates()
+        self.updateButtonStates()
 
     def mergeTasks(self):
         elapsed = 0
@@ -407,7 +408,7 @@ class TaskTimer(QtGui.QWidget):
         taskWidget = self.listWidget.itemWidget(firstItem)
         taskWidget.setElapsed(elapsed)
 
-        self.changeButtonStates()
+        self.updateButtonStates()
 
     def splitTask(self):
         selected = self.listWidget.selectedItems()
@@ -418,7 +419,7 @@ class TaskTimer(QtGui.QWidget):
         taskWidget = self.listWidget.itemWidget(taskItem)
         taskWidget.showEditElapsed(split=True)
 
-        self.changeButtonStates()
+        self.updateButtonStates()
 
     def toggleTasks(self):
         selected = self.listWidget.selectedItems()
@@ -444,7 +445,7 @@ class TaskTimer(QtGui.QWidget):
                     taskWidget = self.listWidget.itemWidget(taskItem)
                     taskWidget.start()
 
-        self.changeButtonStates()
+        self.updateButtonStates()
 
     def getTaskWidgets(self):
         taskWidgets = []
@@ -455,7 +456,7 @@ class TaskTimer(QtGui.QWidget):
 
         return taskWidgets
 
-    def changeButtonStates(self):
+    def updateButtonStates(self):
         self.toggleTasksButton.setEnabled(True)
         self.removeTasksButton.setEnabled(True)
         self.mergeTasksButton.setEnabled(True)
@@ -517,7 +518,7 @@ class TaskTimer(QtGui.QWidget):
                 utils.convertTime(elapsedBlock * minutes, "mins", "ms")
             )
 
-        self.changeButtonStates()
+        self.updateButtonStates()
 
     def timerEvent(self, event):
         totalElapsed = 0
@@ -695,6 +696,7 @@ class TaskListWidget(QtGui.QListWidget):
 
         # Merge Selected Tasks
         if event.key() == QtCore.Qt.Key_M:
+            # TODO: emit signal
             self.parent().mergeTasks()
 
         if selected:
@@ -718,6 +720,9 @@ class TaskListWidget(QtGui.QListWidget):
                 if event.key() in [QtCore.Qt.Key_Return]:
                     if not taskWidget.taskTextWidget.hasFocus():
                         taskWidget.toggle()
+
+            # TODO: emit signal
+            self.parent().updateButtonStates()
 
         super(self.__class__, self).keyPressEvent(event)
 
@@ -892,7 +897,7 @@ class TaskWidget(QtGui.QWidget):
 
 
 class TimerWidget(QtGui.QLCDNumber):
-    def __init__(self, parent=None, *argss, **kwargs):
+    def __init__(self, *argss, **kwargs):
         super(self.__class__, self).__init__(*argss, **kwargs)
         self._timerID = None
         self._elapsed = 0
@@ -1030,9 +1035,9 @@ class TaskSummary(QtGui.QWidget):
         self.tableView.horizontalHeader().setStretchLastSection(True)
         self.mainLayout.addWidget(self.tableView)
 
-        sizegrip = QtGui.QSizeGrip(self)
+        sizeGrip = QtGui.QSizeGrip(self)
         self.mainLayout.addWidget(
-            sizegrip, 0, QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight
+            sizeGrip, 0, QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight
         )
 
         headerRow = []
