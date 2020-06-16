@@ -357,6 +357,7 @@ class TaskTimer(QtGui.QWidget):
         taskWidget = TaskWidget()
         if elapsed:
             taskWidget.setElapsed(elapsed)
+            taskWidget.stop()
         else:
             taskWidget.start()
 
@@ -717,7 +718,7 @@ class TaskListWidget(QtGui.QListWidget):
                             taskWidget.taskTextWidget.setFocus()
 
                 # Pause / Resume Task
-                if event.key() in [QtCore.Qt.Key_Return]:
+                if event.key() in [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter]:
                     if not taskWidget.taskTextWidget.hasFocus():
                         taskWidget.toggle()
 
@@ -886,7 +887,7 @@ class TaskWidget(QtGui.QWidget):
         self.editElapsedButton.show()
 
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Return:
+        if event.key() in [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter]:
             # Confirm Edit Elapsed Text
             if self.editElapsedWidget.hasFocus():
                 self.editElapsedButton.click()
