@@ -9,9 +9,9 @@ from PySide import QtCore, QtGui
 
 import utils
 
-# TODO: Error handle time edit values with style/poup
 # TODO: Change start/end time to added/updated as this is more accurate terminology
 # TODO: Page up/down hotkeys for moving selected TaskWidget order in listview
+# TODO: Can't split a split job? need to activate and pause it to split
 
 
 class TaskTimer(QtGui.QWidget):
@@ -226,6 +226,7 @@ class TaskTimer(QtGui.QWidget):
         self.listWidget.toggleTasksSignal.connect(self.toggleTasks)
         self.listWidget.mergeTasksSignal.connect(self.mergeTasks)
         self.listWidget.removeTasksSignal.connect(self.removeTasks)
+        self.listWidget.updateButtonStatesSignal.connect(self.updateButtonStates)
 
     @property
     def taskTextWidget(self):
@@ -354,7 +355,8 @@ class TaskTimer(QtGui.QWidget):
         item = QtGui.QListWidgetItem(self.listWidget)
         item.setSizeHint(QtCore.QSize(100, 50))
 
-        taskWidget = TaskWidget()
+        taskWidget = TaskWidget(taskTextWidget=self.taskTextWidget)
+        taskWidget.addTaskSignal.connect(self.addTask)
         if elapsed:
             taskWidget.setElapsed(elapsed)
             taskWidget.stop()
@@ -534,11 +536,12 @@ class TaskTimer(QtGui.QWidget):
 
 
 class TaskListWidget(QtGui.QListWidget):
-    addTaskSignal = QtCore.Signal()
+    addTaskSignal = QtCore.Signal(int)
     roundUpOrAddTaskSignal = QtCore.Signal(int)
     toggleTasksSignal = QtCore.Signal()
     mergeTasksSignal = QtCore.Signal()
     removeTasksSignal = QtCore.Signal()
+    updateButtonStatesSignal = QtCore.Signal()
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.RightButton:
@@ -548,7 +551,7 @@ class TaskListWidget(QtGui.QListWidget):
                 action = QtGui.QAction(
                     qtawesome.icon("mdi.alarm-check"), "Add Task", self
                 )
-                action.activated.connect(self.addTaskSignal.emit)
+                action.activated.connect(partial(self.addTaskSignal.emit, None))
                 menu.addAction(action)
 
                 presetsMenu = menu.addMenu(qtawesome.icon("mdi.menu"), "Add Presets")
@@ -697,8 +700,7 @@ class TaskListWidget(QtGui.QListWidget):
 
         # Merge Selected Tasks
         if event.key() == QtCore.Qt.Key_M:
-            # TODO: emit signal
-            self.parent().mergeTasks()
+            self.mergeTasksSignal.emit()
 
         if selected:
             for i, taskItem in enumerate(selected, start=1):
@@ -722,18 +724,21 @@ class TaskListWidget(QtGui.QListWidget):
                     if not taskWidget.taskTextWidget.hasFocus():
                         taskWidget.toggle()
 
-            # TODO: emit signal
-            self.parent().updateButtonStates()
+            self.updateButtonStatesSignal.emit()
 
         super(self.__class__, self).keyPressEvent(event)
 
 
 class TaskWidget(QtGui.QWidget):
+    addTaskSignal = QtCore.Signal(int)
+
     def __init__(self, taskTextWidget=None, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
+        self._taskTextWidget = None
         self.taskTextWidget = taskTextWidget
 
         self.editElapsedWidget = QtGui.QLineEdit(self)
+        self.editElapsedWidget.setToolTip("Enter time as digits and units.")
         self.editElapsedButton = QtGui.QPushButton(
             qtawesome.icon("mdi.check", options=[{"color": "green"}]), ""
         )
@@ -776,6 +781,7 @@ class TaskWidget(QtGui.QWidget):
 
         # self.taskTextWidget.setFocus()
 
+        self.editElapsedWidget.textChanged.connect(self.editElapsedTextChanged)
         self.editElapsedButton.clicked.connect(self.editElapsed)
 
     @property
@@ -783,19 +789,17 @@ class TaskWidget(QtGui.QWidget):
         """
         If a custom taskTextWidget is not set, use the default.
         """
-        if not self._taskTextWidget:
-            self._taskTextWidget = TaskTextWidgetDefault(self)
         return self._taskTextWidget
 
     @taskTextWidget.setter
     def taskTextWidget(self, taskTextWidget):
         if taskTextWidget is None:
             # No need to validate, default will be used
-            pass
+            taskTextWidget = TaskTextWidgetDefault
         elif not isinstance(taskTextWidget, TaskTextWidgetBase):
             print type(taskTextWidget)
             raise TypeError("taskTextwidget must be a subclass of TaskTextWidgetBase")
-        self._taskTextWidget = taskTextWidget
+        self._taskTextWidget = taskTextWidget(self)
 
     def getTaskName(self):
         return self.taskTextWidget.getTaskName()
@@ -832,6 +836,7 @@ class TaskWidget(QtGui.QWidget):
 
     def editElapsed(self):
         text = self.editElapsedWidget.text()
+        text = text.strip()
         if text.startswith("split"):
             text = text.partition("split")[-1].strip(":").strip()
             if utils.isValidTimeString(text):
@@ -851,8 +856,10 @@ class TaskWidget(QtGui.QWidget):
 
                         self.stop()
                         self.setElapsed(current_elapsed)
-                        # TODO: emit signal instead of expecting parent
-                        self.parent().parent().parent().addTask(split_elapsed)
+                        self.addTaskSignal.emit(split_elapsed)
+            else:
+                # Handled by editElapsedTextChanged
+                pass
         else:
             if utils.isValidTimeString(text):
                 elapsed = utils.stringToTime(text, "ms")
@@ -864,15 +871,25 @@ class TaskWidget(QtGui.QWidget):
                         self.setElapsed(elapsed)
             else:
                 pass
-                # TODO: Show invalid tooltip /style
-                # self.editElapsedWidget.setStyleSheet(r"QLineEdit {background-color: #ffe4e4; border: 1px solid #f66}")
-                # print self.editElapsedWidget.toolTip()  # .showText(self.editElapsedWidget.pos(), "Time is not valid.")
-                # return
+                # Handled by editElapsedTextChanged
+                return
 
         self.editElapsedWidget.setText("")
         self.editElapsedWidget.hide()
         self.editElapsedButton.hide()
         self.timerWidget.show()
+
+    def editElapsedTextChanged(self, text):
+        if text.startswith("split"):
+            text = text.partition("split")[-1].strip(":")
+        text = text.strip()
+
+        if utils.isValidTimeString(text):
+            self.editElapsedButton.setEnabled(True)
+            self.editElapsedWidget.setStyleSheet(r"QLineEdit {background-color: #efffe3; border: 1px solid #91ff66}")
+        else:
+            self.editElapsedButton.setEnabled(False)
+            self.editElapsedWidget.setStyleSheet(r"QLineEdit {background-color: #ffe4e4; border: 1px solid #f66}")
 
     def mouseDoubleClickEvent(self, event):
         if self.childAt(event.pos()) == self.timerWidget:
