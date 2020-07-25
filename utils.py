@@ -89,6 +89,13 @@ def isValidTimeString(timeStr):
         if not timeVal:
             isValid = False
             break
+        unitStr = token.strip(timeVal)
+        try:
+            # Get the known equivalent unit string
+            unit = _unitFromString(unitStr)
+        except Exception:
+            isValid = False
+            break
     return isValid
 
 
@@ -197,3 +204,6 @@ if __name__ == "__main__":
     print timeMultiplier('hours', 'ms') / 2
 
     print isValidTimeString(None)
+    print isValidTimeString(1)
+    print isValidTimeString("1")
+    print isValidTimeString("1h")
