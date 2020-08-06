@@ -714,7 +714,7 @@ class TaskListWidget(QtGui.QListWidget):
                     if event.key() == QtCore.Qt.Key_S:
                         if not taskWidget.taskTextWidget.hasFocus():
                             taskWidget.showEditElapsed(split=True)
-                    # Edit Tast Text
+                    # Edit Task Text
                     if event.key() == QtCore.Qt.Key_T:
                         if not taskWidget.taskTextWidget.hasFocus():
                             taskWidget.taskTextWidget.setFocus()
@@ -724,9 +724,35 @@ class TaskListWidget(QtGui.QListWidget):
                     if not taskWidget.taskTextWidget.hasFocus():
                         taskWidget.toggle()
 
+                # Cancel Edit Elapsed
+                if event.key() == QtCore.Qt.Key_Escape:
+                    taskWidget.taskTextWidget.clearFocus()
+                    taskWidget.editElapsedWidget.hide()
+                    taskWidget.editElapsedButton.hide()
+                    taskWidget.editElapsedCancelButton.hide()
+                    taskWidget.timerWidget.show()
+
             self.updateButtonStatesSignal.emit()
 
         super(self.__class__, self).keyPressEvent(event)
+
+
+class EscapeEvent(QtCore.QObject):
+    def eventFilter(self, obj, event):
+        if event.type() == QtCore.QEvent.KeyPress:
+            if event.key() == QtCore.Qt.Key_Escape:
+                if obj.__class__ == QtGui.QLineEdit:
+                    obj.hide()
+                    obj.parent().taskTextWidget.clearFocus()
+                    obj.parent().editElapsedButton.hide()
+                    obj.parent().editElapsedCancelButton.hide()
+                    obj.parent().timerWidget.show()
+                else:
+                    # class == taskTextWidget
+                    obj.parent().parent().setFocus()
+                return True
+        return super(obj.__class__, obj).eventFilter(obj, event)
+
 
 
 class TaskWidget(QtGui.QWidget):
@@ -738,11 +764,21 @@ class TaskWidget(QtGui.QWidget):
         self.taskTextWidget = taskTextWidget
 
         self.editElapsedWidget = QtGui.QLineEdit(self)
+
+        escapeEvent = EscapeEvent(self)
+        self.editElapsedWidget.installEventFilter(escapeEvent)
+        self.taskTextWidget.installEventFilter(escapeEvent)
+
         self.editElapsedWidget.setToolTip("Enter time as digits and units.")
         self.editElapsedButton = QtGui.QPushButton(
             qtawesome.icon("mdi.check", options=[{"color": "green"}]), ""
         )
         self.editElapsedButton.setToolTip("Confirm Time")
+        self.editElapsedCancelButton = QtGui.QPushButton(
+            qtawesome.icon("mdi.window-close", options=[{"color": "red"}]), ""
+        )
+        self.editElapsedCancelButton.setToolTip("Cancel")
+        self.editElapsedCancelButton.hide()
         self.timerWidget = TimerWidget(self)
         bars = qtawesome.icon("mdi.drag")
         pixmap = bars.pixmap(24, 24)
@@ -763,6 +799,7 @@ class TaskWidget(QtGui.QWidget):
         self.editElapsedButton.hide()
         self.mainLayout.addWidget(self.editElapsedWidget)
         self.mainLayout.addWidget(self.editElapsedButton)
+        self.mainLayout.addWidget(self.editElapsedCancelButton)
         self.mainLayout.addWidget(self.timerWidget)
         self.mainLayout.addWidget(self.taskTextWidget)
         self.mainLayout.addWidget(self.moveLabel)
@@ -783,6 +820,9 @@ class TaskWidget(QtGui.QWidget):
 
         self.editElapsedWidget.textChanged.connect(self.editElapsedTextChanged)
         self.editElapsedButton.clicked.connect(self.editElapsed)
+        self.editElapsedCancelButton.clicked.connect(self.editElapsedWidget.hide)
+        self.editElapsedCancelButton.clicked.connect(self.editElapsedCancelButton.hide)
+        self.editElapsedCancelButton.clicked.connect(self.timerWidget.show)
 
     @property
     def taskTextWidget(self):
@@ -877,6 +917,7 @@ class TaskWidget(QtGui.QWidget):
         self.editElapsedWidget.setText("")
         self.editElapsedWidget.hide()
         self.editElapsedButton.hide()
+        self.editElapsedCancelButton.hide()
         self.timerWidget.show()
 
     def editElapsedTextChanged(self, text):
@@ -886,9 +927,12 @@ class TaskWidget(QtGui.QWidget):
 
         if utils.isValidTimeString(text):
             self.editElapsedButton.setEnabled(True)
+            self.editElapsedButton.show()
+            self.editElapsedCancelButton.hide()
             self.editElapsedWidget.setStyleSheet(r"QLineEdit {background-color: #efffe3; border: 1px solid #91ff66}")
         else:
-            self.editElapsedButton.setEnabled(False)
+            self.editElapsedButton.hide()
+            self.editElapsedCancelButton.show()
             self.editElapsedWidget.setStyleSheet(r"QLineEdit {background-color: #ffe4e4; border: 1px solid #f66}")
 
     def mouseDoubleClickEvent(self, event):
@@ -897,10 +941,17 @@ class TaskWidget(QtGui.QWidget):
 
     def showEditElapsed(self, split=False):
         self.timerWidget.hide()
+
         if split:
             self.editElapsedWidget.setText("split: ")
+        else:
+            self.editElapsedWidget.setText("")
+
+        self.editElapsedWidget.setStyleSheet("")
         self.editElapsedWidget.show()
         self.editElapsedWidget.setFocus()
+        self.editElapsedCancelButton.setHidden(True)
+        self.editElapsedButton.setEnabled(False)
         self.editElapsedButton.show()
 
     def keyPressEvent(self, event):
