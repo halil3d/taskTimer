@@ -162,6 +162,12 @@ class TaskTimer(QtGui.QWidget):
 
         x, y, w, h = 700, 300, 500, 400
         self.setGeometry(x, y, w, h)
+        screen = QtGui.QDesktopWidget().screenGeometry()
+        x_offset, y_offset = (0, 0)
+        if sys.platform == 'win32':
+            y_offset = 50
+        self.move(screen.width() - w - x_offset, screen.height() - h - y_offset)
+
         self.setWindowTitle("Task Timer")
         flags = QtCore.Qt.WindowFlags(
             QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint
