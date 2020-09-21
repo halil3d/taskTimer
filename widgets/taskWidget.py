@@ -88,7 +88,6 @@ class TaskWidget(QtGui.QWidget):
             # No need to validate, default will be used
             taskTextWidget = TaskTextWidgetDefault
         elif not isinstance(taskTextWidget, TaskTextWidgetBase):
-            print type(taskTextWidget)
             raise TypeError("taskTextwidget must be a subclass of TaskTextWidgetBase")
         self._taskTextWidget = taskTextWidget(self)
 
