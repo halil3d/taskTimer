@@ -11,7 +11,6 @@ import utils
 
 # TODO: Change start/end time to added/updated as this is more accurate terminology
 # TODO: Page up/down hotkeys for moving selected TaskWidget order in listview
-# TODO: Can't split a split job? need to activate and pause it to split
 
 
 class TaskTimer(QtGui.QWidget):
@@ -540,6 +539,35 @@ class TaskTimer(QtGui.QWidget):
         # if seconds:
         #     self.totalTimeLabel.setText(utils.timeToString(seconds, inputUnit='secs'))
 
+    def close(self):
+        """
+        I always rush to shutdown and close everything after finishing work,
+        and awlays forget to save all the hard work I've logged.
+        This will ensure a nagging popup makes me think twice.
+        """
+        if self.listWidget.count():
+            activeTimers = False
+            for i in xrange(self.listWidget.count()):
+                item = self.listWidget.item(i)
+                taskWidget = self.listWidget.itemWidget(item)
+                if taskWidget.isActive():
+                    activeTimers = True
+                    break
+
+            title = "Are you sure you want to quit?"
+            if activeTimers:
+                text = "There are timers that are currently active."
+                text += "\nYou may want to end them and record your progress."
+            else:
+                text = "Check you have recorded your progress before quitting."
+            msgBox = QtGui.QMessageBox.question(
+                self,
+                title,
+                text,
+                buttons=QtGui.QMessageBox.Cancel | QtGui.QMessageBox.Close,
+                defaultButton=QtGui.QMessageBox.Cancel)
+        super(self.__class__, self).close()
+
 
 class TaskListWidget(QtGui.QListWidget):
     addTaskSignal = QtCore.Signal(int)
@@ -894,9 +922,7 @@ class TaskWidget(QtGui.QWidget):
                     if not days:
                         current_elapsed = self.elapsed() - split_elapsed
                         if not current_elapsed >= 0:
-                            self.editElapsedWidget.setText("")
-                            self.editElapsedWidget.hide()
-                            self.editElapsedButton.hide()
+                            self.hideEditElapsed()
                             self.timerWidget.show()
                             return
 
@@ -909,21 +935,17 @@ class TaskWidget(QtGui.QWidget):
         else:
             if utils.isValidTimeString(text):
                 elapsed = utils.stringToTime(text, "ms")
-                if elapsed:
-                    days, remainder = divmod(
-                        elapsed, utils.timeMultiplier("days", "ms")
-                    )
-                    if not days:
-                        self.setElapsed(elapsed)
+                days, remainder = divmod(
+                    elapsed, utils.timeMultiplier("days", "ms")
+                )
+                if not days:
+                    self.setElapsed(elapsed)
             else:
                 pass
                 # Handled by editElapsedTextChanged
                 return
 
-        self.editElapsedWidget.setText("")
-        self.editElapsedWidget.hide()
-        self.editElapsedButton.hide()
-        self.editElapsedCancelButton.hide()
+        self.hideEditElapsed()
         self.timerWidget.show()
 
     def editElapsedTextChanged(self, text):
@@ -959,6 +981,12 @@ class TaskWidget(QtGui.QWidget):
         self.editElapsedCancelButton.setHidden(True)
         self.editElapsedButton.setEnabled(False)
         self.editElapsedButton.show()
+
+    def hideEditElapsed(self):
+        self.editElapsedWidget.setText("")
+        self.editElapsedWidget.hide()
+        self.editElapsedButton.hide()
+        self.editElapsedCancelButton.hide()
 
     def keyPressEvent(self, event):
         if event.key() in [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter]:
