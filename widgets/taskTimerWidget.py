@@ -13,7 +13,7 @@ from timerWidget import TimerWidget
 from taskWidget import TaskWidget
 from taskSummary import TaskSummary
 
-import utils
+from taskTimer import utils
 
 # TODO: Change start/end time to added/updated as this is more accurate terminology
 # TODO: Page up/down hotkeys for moving selected TaskWidget order in listview

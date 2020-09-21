@@ -3,7 +3,7 @@
 
 from PySide import QtCore, QtGui
 
-from taskTimerWidget import TaskTimerWidget
+from widgets.taskTimerWidget import TaskTimerWidget
 
 if __name__ == "__main__":
     import sys

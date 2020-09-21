@@ -2,7 +2,7 @@ import datetime
 
 from PySide import QtCore, QtGui
 
-import utils
+from taskTimer import utils
 
 
 class TimerWidget(QtGui.QLCDNumber):
