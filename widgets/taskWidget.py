@@ -3,7 +3,7 @@ from PySide import QtCore, QtGui
 
 from timerWidget import TimerWidget
 from taskTextWidget import TaskTextWidgetDefault
-import utils
+from taskTimer import utils
 
 
 class TaskWidget(QtGui.QWidget):
