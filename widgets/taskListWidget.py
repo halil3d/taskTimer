@@ -1,11 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
 import datetime
 from functools import partial
 
 import qtawesome
 from PySide import QtCore, QtGui
+
+from .timerWidget import TimerWidget
+from .taskWidget import TaskWidget
 
 
 class TaskListWidget(QtGui.QListWidget):

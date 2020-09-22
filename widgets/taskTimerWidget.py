@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
 import sys
 import datetime
 from functools import partial
@@ -8,10 +7,10 @@ from functools import partial
 import qtawesome
 from PySide import QtCore, QtGui
 
-from taskListWidget import TaskListWidget
-from timerWidget import TimerWidget
-from taskWidget import TaskWidget
-from taskSummary import TaskSummary
+from .taskListWidget import TaskListWidget
+from .timerWidget import TimerWidget
+from .taskWidget import TaskWidget
+from .taskSummary import TaskSummary
 
 from taskTimer import utils
 
@@ -577,20 +576,3 @@ class TaskTimerWidget(QtGui.QWidget):
                 return
 
         super(self.__class__, self).close()
-
-
-
-
-
-
-
-
-
-
-if __name__ == "__main__":
-    import sys
-
-    app = QtGui.QApplication(sys.argv[1:])
-    t = TaskTimer()
-    t.show()
-    sys.exit(app.exec_())

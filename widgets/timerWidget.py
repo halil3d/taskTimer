@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 import datetime
 
 from PySide import QtCore, QtGui
