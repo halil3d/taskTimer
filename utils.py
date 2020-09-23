@@ -66,7 +66,7 @@ def timeToString(timeValue, inputUnit='ms', minUnit='us'):
     for timeUnit, timeValue in timeDict.items():
         if timeValue:
             plural = "s" if timeValue > 1 else ""
-            timeStrTokens.append("%s %s%s" % (
+            timeStrTokens.append("%s%s%s" % (
                 str(int(timeValue)), str(timeUnit), plural))
 
     timeStr = ""
@@ -121,9 +121,10 @@ def _timeStringToDict(timeStr):
         ('us', 0.0)
     ])
 
-    timeStr = str(timeStr).replace(',', ' ')
+    timeStr = str(timeStr).replace(', ', ' ')
     tokens = timeStr.split(' ')
     for token in tokens:
+        token = token.strip(',')
         # Get the value of time within the token, account for decimal places
         timeVal = ''.join([digit for digit in token if digit.isdigit() or digit == '.'])
         if not timeVal:
@@ -185,7 +186,7 @@ def _unitFromString(unit='sec'):
 if __name__ == "__main__":
     print stringToTime("1hrs", 'mins')
     print stringToTime("1d", 'hrs')
-    print stringToTime("0.5y 1w 5d 3.5h 50m 15s 20ms 6us", 'w')
+    print stringToTime("0.5y, 1w, 5d, 3.5h, 50m, 15s, 20ms, 6us", 'w')
     print stringToTime("26weeks 3days 3hours", 'y')
     print stringToTime("0.5d 6hrs", 'hrs')
     print timeToString(360000, 'ms')
