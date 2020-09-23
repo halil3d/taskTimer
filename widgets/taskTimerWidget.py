@@ -265,6 +265,12 @@ class TaskTimerWidget(QtGui.QWidget):
         menu.addAction(action)
 
         action = QtGui.QAction(
+            qtawesome.icon("mdi.file-document"), "&Load From CSV", self
+        )
+        action.activated.connect(self.loadTasksFromCSV)
+        menu.addAction(action)
+
+        action = QtGui.QAction(
             qtawesome.icon("mdi.clipboard-text"), "&Show Summary", self
         )
         action.activated.connect(self.showTaskSummary)
@@ -296,9 +302,9 @@ class TaskTimerWidget(QtGui.QWidget):
             for taskWidget in taskWidgets:
                 writer.writerow(
                     {
-                        "Task": taskWidget.getTaskName(),
-                        "Start": taskWidget.started().strftime("%Y-%m-%d %H:%M:%S"),
-                        "End": taskWidget.ended().strftime("%Y-%m-%d %H:%M:%S"),
+                        "Task": taskWidget.taskTextWidget.serialise(),
+                        "Start": taskWidget.started().strftime(r"%Y-%m-%d %H:%M:%S"),
+                        "End": taskWidget.ended().strftime(r"%Y-%m-%d %H:%M:%S"),
                         "Elapsed": utils.timeToString(
                             taskWidget.elapsed(), inputUnit="ms", minUnit="s"
                         ),
@@ -309,6 +315,31 @@ class TaskTimerWidget(QtGui.QWidget):
             self, "Export Tasks To CSV", "CSV File Created:\n%s" % csv_file
         )
         os.system(csv_file)
+
+    def loadTasksFromCSV(self):
+        import os
+        import csv
+
+        csvDir = os.path.expanduser("~/.taskTimer")
+        selectData = QtGui.QFileDialog.getOpenFileName(self,
+            "Open Saved Data", csvDir, "CSV Files (*.csv)")
+        csvPath = selectData[0]
+        if not csvPath:
+            return
+
+        with open(csvPath) as csvFile:
+            reader = csv.DictReader(csvFile)
+            for taskData in reader:
+                item = QtGui.QListWidgetItem(self.listWidget)
+                item.setSizeHint(QtCore.QSize(100, 50))
+
+                taskWidget = TaskWidget.fromData(taskData, taskTextWidget=self.taskTextWidget)
+                taskWidget.addTaskSignal.connect(self.addTask)
+
+                self.listWidget.setItemWidget(item, taskWidget)
+                self.listWidget.addItem(item)
+
+        self.updateButtonStates()
 
     def showTaskSummary(self):
         taskWidgets = self.getTaskWidgets()

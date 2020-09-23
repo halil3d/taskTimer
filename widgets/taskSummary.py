@@ -55,7 +55,7 @@ class TaskSummary(QtGui.QWidget):
 
         for taskWidget in self.taskWidgets:
             rowItems = [
-                QtGui.QStandardItem(taskWidget.getTaskName()),
+                QtGui.QStandardItem(taskWidget.taskTextWidget.serialise()),
                 QtGui.QStandardItem(taskWidget.started().strftime("%Y-%m-%d %H:%M:%S")),
                 QtGui.QStandardItem(taskWidget.ended().strftime("%Y-%m-%d %H:%M:%S")),
                 QtGui.QStandardItem(

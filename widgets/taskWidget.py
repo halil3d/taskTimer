@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import datetime
 import qtawesome
 from PySide import QtCore, QtGui
 
@@ -10,6 +11,12 @@ from taskTimer import utils
 
 class TaskWidget(QtGui.QWidget):
     addTaskSignal = QtCore.Signal(int)
+
+    @classmethod
+    def fromData(cls, data, taskTextWidget=None):
+        taskWidget = cls(taskTextWidget=taskTextWidget)
+        taskWidget.deserialise(data)
+        return taskWidget
 
     def __init__(self, taskTextWidget=None, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
@@ -93,8 +100,19 @@ class TaskWidget(QtGui.QWidget):
             raise TypeError("taskTextwidget must be a subclass of TaskTextWidgetBase")
         self._taskTextWidget = taskTextWidget(self)
 
-    def getTaskName(self):
-        return self.taskTextWidget.getTaskName()
+    def serialise(self):
+        # TODO Return data dict
+        return NotImplementedError
+
+    def deserialise(self, data):
+        self.taskTextWidget.deserialise(data['Task'])
+        elapsed = utils.stringToTime(data['Elapsed'], "ms")
+        self.setElapsed(elapsed)
+        started = datetime.datetime.strptime(data['Start'], r"%Y-%m-%d %H:%M:%S")
+        self.setStarted(started)
+        ended = datetime.datetime.strptime(data['End'], r"%Y-%m-%d %H:%M:%S")
+        self.setEnded(ended)
+        self.stop()
 
     def elapsed(self):
         return self.timerWidget.elapsed()
@@ -111,14 +129,17 @@ class TaskWidget(QtGui.QWidget):
     def started(self):
         return self.timerWidget.started()
 
-    def elapsed(self):
-        return self.timerWidget.elapsed()
+    def setStarted(self, datetime):
+        self.timerWidget.setStarted(datetime)
 
     def stop(self):
         self.timerWidget.stop()
 
     def ended(self):
         return self.timerWidget.ended()
+
+    def setEnded(self, datetime):
+        self.timerWidget.setEnded(datetime)
 
     def reset(self):
         self.timerWidget.reset()

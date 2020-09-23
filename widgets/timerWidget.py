@@ -63,6 +63,9 @@ class TimerWidget(QtGui.QLCDNumber):
         # time and was never activated, returning now() for now...
         return self._started or datetime.datetime.now()
 
+    def setStarted(self, datetime):
+        self._started = datetime
+
     def stop(self):
         if self._timerID:
             self._elapsed += self._timer.elapsed()
@@ -79,6 +82,9 @@ class TimerWidget(QtGui.QLCDNumber):
         # FIXME: Need to do something smart when timer has been created with set
         # time and was never activated, returning now() for now...
         return self._ended or datetime.datetime.now()
+
+    def setEnded(self, datetime):
+        self._ended = datetime
 
     def reset(self):
         if self._timerID:
