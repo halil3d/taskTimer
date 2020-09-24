@@ -19,12 +19,17 @@ from taskTimer import utils
 
 
 class TaskTimerWidget(QtGui.QWidget):
-    def __init__(self, taskTextWidget=None, exportTasksCallback=None, *args, **kwargs):
+    def __init__(self,
+                 taskTextWidget=None,
+                 exportTasksButtonCallback=None,
+                 exportTasksCallback=None,
+                 *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self._totalTimerID = None
         self._mousePressed = None
         self._mousePosition = None
         self._taskTextWidget = taskTextWidget
+        self._exportTasksButtonCallback = exportTasksButtonCallback
         self._exportTasksCallback = exportTasksCallback
         self.taskSummary = None
         self.listWidget = TaskListWidget(self)
@@ -227,7 +232,7 @@ class TaskTimerWidget(QtGui.QWidget):
         self.roundHourButton.clicked.connect(partial(self.roundUpOrAddTask, 60))
         self.round30MinsButton.clicked.connect(partial(self.roundUpOrAddTask, 30))
         self.round15MinsButton.clicked.connect(partial(self.roundUpOrAddTask, 15))
-        self.exportTasksButton.clicked.connect(self.exportTasksCallback)
+        self.exportTasksButton.clicked.connect(self.exportTasksButtonCallback)
         self.listWidget.itemSelectionChanged.connect(self.updateButtonStates)
 
         # Signal connections
@@ -247,16 +252,26 @@ class TaskTimerWidget(QtGui.QWidget):
         self._taskTextWidget = taskTextWidget
 
     @property
+    def exportTasksButtonCallback(self):
+        if not self._exportTasksButtonCallback:
+            self._exportTasksButtonCallback = self.exportTasksButtonDefault
+        return self._exportTasksButtonCallback
+
+    @exportTasksButtonCallback.setter
+    def exportTasksButtonCallback(self, exportTasksButtonCallback):
+        self._exportTasksButtonCallback = exportTasksButtonCallback
+
+    @property
     def exportTasksCallback(self):
         if not self._exportTasksCallback:
-            self._exportTasksCallback = self.exportTasksDefault
+            self._exportTasksCallback = self.exportTasksToCSV
         return self._exportTasksCallback
 
     @exportTasksCallback.setter
     def exportTasksCallback(self, exportTasksCallback):
         self._exportTasksCallback = exportTasksCallback
 
-    def exportTasksDefault(self):
+    def exportTasksButtonDefault(self):
         menu = QtGui.QMenu(self)
         action = QtGui.QAction(
             qtawesome.icon("mdi.file-document"), "&Export To CSV", self
@@ -276,9 +291,9 @@ class TaskTimerWidget(QtGui.QWidget):
         action.activated.connect(self.showTaskSummary)
         menu.addAction(action)
 
-        p = self.exportTasksButton.pos()
-        menu.move(self.mapToParent(p).x(), self.mapToParent(p).y())
         menu.show()
+        p = self.exportTasksButton.pos()
+        menu.move(self.mapToParent(p).x() - menu.rect().width(), self.mapToParent(p).y())
 
     def exportTasksToCSV(self):
         import os
@@ -314,7 +329,6 @@ class TaskTimerWidget(QtGui.QWidget):
         QtGui.QMessageBox.information(
             self, "Export Tasks To CSV", "CSV File Created:\n%s" % csv_file
         )
-        os.system(csv_file)
 
     def loadTasksFromCSV(self):
         import os
@@ -362,7 +376,7 @@ class TaskTimerWidget(QtGui.QWidget):
                 self.roundUpOrAddTask(15)
 
             if event.key() == QtCore.Qt.Key_E:
-                self.exportTasksCallback()
+                self.exportTasksButtonCallback()
 
         # Add new Task
         if event.key() in [QtCore.Qt.Key_Equal, QtCore.Qt.Key_Plus]:
@@ -578,7 +592,7 @@ class TaskTimerWidget(QtGui.QWidget):
     def close(self):
         """
         I always rush to shutdown and close everything after finishing work,
-        and awlays forget to save all the hard work I've logged.
+        and always forget to save all the hard work I've logged.
         This will ensure a nagging popup makes me think twice.
         """
         if self.listWidget.count():
@@ -593,17 +607,35 @@ class TaskTimerWidget(QtGui.QWidget):
             title = "Are you sure you want to quit?"
             if activeTimers:
                 text = "There are timers that are currently active."
-                text += "\nYou may want to end them and record your progress."
+                text += "\n\nExport and Quit to record your progress. "
+                text += "\nQuit to discard them, or Cancel to return."
             else:
-                text = "Check you have recorded your progress before quitting."
-            msgBox = QtGui.QMessageBox.question(
-                self,
-                title,
-                text,
-                buttons=QtGui.QMessageBox.Cancel | QtGui.QMessageBox.Close,
-                defaultButton=QtGui.QMessageBox.Cancel)
+                text = "Export and Quit to record your progress."
+                text += "\nQuit to discard, or Cancel to return."
 
-            if msgBox == QtGui.QMessageBox.Cancel:
+            msgBox = QtGui.QMessageBox()
+            msgBox.setWindowTitle(title)
+            msgBox.setText(text)
+            msgBox.setIcon(QtGui.QMessageBox.Question)
+            exportAndQuitButton = msgBox.addButton(
+                "&Export and Quit", QtGui.QMessageBox.AcceptRole)
+            quitButton = msgBox.addButton(
+                "&Quit", QtGui.QMessageBox.DestructiveRole)
+            cancelButton = msgBox.addButton(
+                "&Cancel", QtGui.QMessageBox.RejectRole)
+
+            msgBox.setDefaultButton(cancelButton)
+
+            msgBox.exec_()
+
+            selectedButton = msgBox.clickedButton()
+            role = msgBox.buttonRole(selectedButton)
+            if role == QtGui.QMessageBox.AcceptRole:
+                self.exportTasksCallback()
+                super(self.__class__, self).close()
+            elif role == QtGui.QMessageBox.DestructiveRole:
+                super(self.__class__, self).close()
+            elif role == QtGui.QMessageBox.RejectRole:
                 return
 
         super(self.__class__, self).close()
