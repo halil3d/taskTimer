@@ -1,3 +1,4 @@
+import re
 from collections import OrderedDict
 
 
@@ -66,7 +67,7 @@ def timeToString(timeValue, inputUnit='ms', minUnit='us'):
     for timeUnit, timeValue in timeDict.items():
         if timeValue:
             plural = "s" if timeValue > 1 else ""
-            timeStrTokens.append("%s%s%s" % (
+            timeStrTokens.append("%s %s%s" % (
                 str(int(timeValue)), str(timeUnit), plural))
 
     timeStr = ""
@@ -80,10 +81,13 @@ def timeToString(timeValue, inputUnit='ms', minUnit='us'):
 
 
 def isValidTimeString(timeStr):
+    if not isinstance(timeStr, basestring):
+        return False
+
     isValid = True
-    timeStr = str(timeStr).replace(',', ' ')
-    tokens = timeStr.split(' ')
+    tokens = re.split(r', |,|(?<=[^\d]) ', timeStr)
     for token in tokens:
+        token = token.replace(' ', '')
         # Get the value of time within the token, account for decimal places
         timeVal = ''.join([digit for digit in token if digit.isdigit() or digit == '.'])
         if not timeVal:
@@ -121,10 +125,9 @@ def _timeStringToDict(timeStr):
         ('us', 0.0)
     ])
 
-    timeStr = str(timeStr).replace(', ', ' ')
-    tokens = timeStr.split(' ')
+    tokens = re.split(r', |,|(?<=[^\d]) ', timeStr)
     for token in tokens:
-        token = token.strip(',')
+        token = token.replace(' ', '')
         # Get the value of time within the token, account for decimal places
         timeVal = ''.join([digit for digit in token if digit.isdigit() or digit == '.'])
         if not timeVal:
@@ -187,7 +190,11 @@ if __name__ == "__main__":
     print stringToTime("1hrs", 'mins')
     print stringToTime("1d", 'hrs')
     print stringToTime("0.5y, 1w, 5d, 3.5h, 50m, 15s, 20ms, 6us", 'w')
+    print stringToTime("0.5 y, 1 w, 5 d, 3.5 h, 50 m, 15 s, 20 ms, 6 us", 'w')
     print stringToTime("26weeks 3days 3hours", 'y')
+    print stringToTime("26 weeks 3 days 3 hours", 'y')
+    print stringToTime("26 weeks, 3 days, 3 hours", 'y')
+    print stringToTime("26 weeks,3 days,3 hours", 'y')
     print stringToTime("0.5d 6hrs", 'hrs')
     print timeToString(360000, 'ms')
     print timeToString(24, 'w')
