@@ -101,8 +101,15 @@ class TaskWidget(QtGui.QWidget):
         self._taskTextWidget = taskTextWidget(self)
 
     def serialise(self):
-        # TODO Return data dict
-        return NotImplementedError
+        data =  {
+            "Task": self.taskTextWidget.serialise(),
+            "Start": self.started().strftime(r"%Y-%m-%d %H:%M:%S"),
+            "End": self.ended().strftime(r"%Y-%m-%d %H:%M:%S"),
+            "Elapsed": utils.timeToString(
+                self.elapsed(), inputUnit="ms", minUnit="s"
+            )
+        }
+        return data
 
     def deserialise(self, data):
         self.taskTextWidget.deserialise(data['Task'])

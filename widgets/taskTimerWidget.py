@@ -316,14 +316,7 @@ class TaskTimerWidget(QtGui.QWidget):
             writer.writeheader()
             for taskWidget in taskWidgets:
                 writer.writerow(
-                    {
-                        "Task": taskWidget.taskTextWidget.serialise(),
-                        "Start": taskWidget.started().strftime(r"%Y-%m-%d %H:%M:%S"),
-                        "End": taskWidget.ended().strftime(r"%Y-%m-%d %H:%M:%S"),
-                        "Elapsed": utils.timeToString(
-                            taskWidget.elapsed(), inputUnit="ms", minUnit="s"
-                        ),
-                    }
+                    taskWidget.serialise()
                 )
 
         QtGui.QMessageBox.information(
