@@ -1,23 +1,23 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import qtawesome
-from PySide import QtCore, QtGui
+from qtpy import QtCore, QtGui, QtWidgets
 
 from taskTimer import utils
 
 
-class TaskSummary(QtGui.QWidget):
+class TaskSummary(QtWidgets.QWidget):
     def __init__(self, taskWidgets=[], *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.taskWidgets = taskWidgets
         self._mousePressed = False
         self._mousePosition = None
 
-        self.mainLayout = QtGui.QVBoxLayout(self)
-        self.closeButton = QtGui.QPushButton(qtawesome.icon("mdi.window-close"), "")
-        self.windowIconLayout = QtGui.QHBoxLayout()
-        self.model = QtGui.QStandardItemModel(self)
-        self.tableView = QtGui.QTableView(self)
+        self.mainLayout = QtWidgets.QVBoxLayout(self)
+        self.closeButton = QtWidgets.QPushButton(qtawesome.icon("mdi.window-close"), "")
+        self.windowIconLayout = QtWidgets.QHBoxLayout()
+        self.model = QtWidgets.QStandardItemModel(self)
+        self.tableView = QtWidgets.QTableView(self)
 
         self.setupUI()
 
@@ -43,22 +43,22 @@ class TaskSummary(QtGui.QWidget):
         self.tableView.horizontalHeader().setStretchLastSection(True)
         self.mainLayout.addWidget(self.tableView)
 
-        sizeGrip = QtGui.QSizeGrip(self)
+        sizeGrip = QtWidgets.QSizeGrip(self)
         self.mainLayout.addWidget(
             sizeGrip, 0, QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight
         )
 
         headerRow = []
         for header in ["Task", "Start", "End", "Elapsed"]:
-            headerRow.append(QtGui.QStandardItem(header))
+            headerRow.append(QtWidgets.QStandardItem(header))
         self.model.appendRow(headerRow)
 
         for taskWidget in self.taskWidgets:
             rowItems = [
-                QtGui.QStandardItem(taskWidget.taskTextWidget.serialise()),
-                QtGui.QStandardItem(taskWidget.started().strftime("%Y-%m-%d %H:%M:%S")),
-                QtGui.QStandardItem(taskWidget.ended().strftime("%Y-%m-%d %H:%M:%S")),
-                QtGui.QStandardItem(
+                QtWidgets.QStandardItem(taskWidget.taskTextWidget.serialise()),
+                QtWidgets.QStandardItem(taskWidget.started().strftime("%Y-%m-%d %H:%M:%S")),
+                QtWidgets.QStandardItem(taskWidget.ended().strftime("%Y-%m-%d %H:%M:%S")),
+                QtWidgets.QStandardItem(
                     utils.timeToString(
                         taskWidget.elapsed(), inputUnit="ms", minUnit="s"
                     )

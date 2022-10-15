@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from PySide import QtCore, QtGui
+from qtpy import QtCore, QtGui, QtWidgets
 
 
 class TaskTextWidgetBase(object):
@@ -15,7 +15,7 @@ class TaskTextWidgetBase(object):
             raise NotImplementedError(error_msg)
 
 
-class TaskTextWidgetDefault(TaskTextWidgetBase, QtGui.QLineEdit):
+class TaskTextWidgetDefault(TaskTextWidgetBase, QtWidgets.QLineEdit):
     def serialise(self):
         return self.text()
 

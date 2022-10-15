@@ -5,7 +5,7 @@ import datetime
 from functools import partial
 
 import qtawesome
-from PySide import QtCore, QtGui
+from qtpy import QtCore, QtWidgets, QtWidgets
 
 from .taskListWidget import TaskListWidget
 from .timerWidget import TimerWidget
@@ -14,11 +14,15 @@ from .taskSummary import TaskSummary
 
 from taskTimer import utils
 
-# TODO: Change start/end time to added/updated as this is more accurate terminology
 # TODO: Page up/down hotkeys for moving selected TaskWidget order in listview
+# TODO: Add history queue to undo actions
+# TODO: Make a virtual env for testing with requirements
+# TODO: Make installable as pip package
+# TODO: Add unittests
+# TODO: Python 3
 
 
-class TaskTimerWidget(QtGui.QWidget):
+class TaskTimerWidget(QtWidgets.QWidget):
     def __init__(self,
                  taskTextWidget=None,
                  exportTasksButtonCallback=None,
@@ -34,7 +38,7 @@ class TaskTimerWidget(QtGui.QWidget):
         self.taskSummary = None
         self.listWidget = TaskListWidget(self)
         self.totalTimeWidget = TimerWidget(self)
-        # self.totalTimeLabel = QtGui.QLabel()
+        # self.totalTimeLabel = QtWidgets.QLabel()
         self.round15MinsIcon = qtawesome.icon(
             "mdi.timelapse",
             "mdi.numeric-1",
@@ -72,23 +76,23 @@ class TaskTimerWidget(QtGui.QWidget):
             ],
         )
 
-        self.roundHourButton = QtGui.QPushButton(self.roundHourIcon, "")
-        self.round30MinsButton = QtGui.QPushButton(self.round30MinsIcon, "")
-        self.round15MinsButton = QtGui.QPushButton(self.round15MinsIcon, "")
-        self.minimizedButton = QtGui.QPushButton(
+        self.roundHourButton = QtWidgets.QPushButton(self.roundHourIcon, "")
+        self.round30MinsButton = QtWidgets.QPushButton(self.round30MinsIcon, "")
+        self.round15MinsButton = QtWidgets.QPushButton(self.round15MinsIcon, "")
+        self.minimizedButton = QtWidgets.QPushButton(
             qtawesome.icon("mdi.window-minimize"), ""
         )
-        self.closeButton = QtGui.QPushButton(qtawesome.icon("mdi.window-close"), "")
-        self.newTaskButton = QtGui.QPushButton(qtawesome.icon("mdi.alarm-plus"), "")
-        self.removeTasksButton = QtGui.QPushButton(qtawesome.icon("mdi.alarm-off"), "")
-        self.mergeTasksButton = QtGui.QPushButton(
+        self.closeButton = QtWidgets.QPushButton(qtawesome.icon("mdi.window-close"), "")
+        self.newTaskButton = QtWidgets.QPushButton(qtawesome.icon("mdi.alarm-plus"), "")
+        self.removeTasksButton = QtWidgets.QPushButton(qtawesome.icon("mdi.alarm-off"), "")
+        self.mergeTasksButton = QtWidgets.QPushButton(
             qtawesome.icon("mdi.alarm-multiple"), ""
         )
-        self.splitTaskButton = QtGui.QPushButton(qtawesome.icon("mdi.source-fork"), "")
-        self.toggleTasksButton = QtGui.QPushButton(
+        self.splitTaskButton = QtWidgets.QPushButton(qtawesome.icon("mdi.source-fork"), "")
+        self.toggleTasksButton = QtWidgets.QPushButton(
             qtawesome.icon("mdi.alarm-snooze"), ""
         )
-        self.exportTasksButton = QtGui.QPushButton(
+        self.exportTasksButton = QtWidgets.QPushButton(
             qtawesome.icon("mdi.cloud-upload"), ""
         )
         self.setupUI()
@@ -102,7 +106,7 @@ class TaskTimerWidget(QtGui.QWidget):
 
         # self.newTaskButton.setFixedSize(36, 32)
         self.newTaskButton.setSizePolicy(
-            QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
         )
         self.newTaskButton.setToolTip("Add a new task\n(Ctrl + =/+)")
         self.mergeTasksButton.setFixedSize(36, 32)
@@ -121,7 +125,7 @@ class TaskTimerWidget(QtGui.QWidget):
         # self.toggleTasksButton.setFixedSize(36, 32)
         self.toggleTasksButton.setEnabled(False)
         self.toggleTasksButton.setSizePolicy(
-            QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
         )
         self.toggleTasksButton.setToolTip(
             "Pause / Resume selected tasks\n"
@@ -156,7 +160,7 @@ class TaskTimerWidget(QtGui.QWidget):
             "Round selected to nearest 15 minutes\n"
             "Ctrl + 3"
         )
-        # self.exportTasksButton.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        # self.exportTasksButton.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         self.exportTasksButton.setMinimumHeight(32)
         # self.exportTasksButton.setIconSize(QtCore.QSize(36, 32))
         self.exportTasksButton.setToolTip(
@@ -166,12 +170,12 @@ class TaskTimerWidget(QtGui.QWidget):
             "(Ctrl + E)"
         )
 
-        self.mainLayout = QtGui.QVBoxLayout()
+        self.mainLayout = QtWidgets.QVBoxLayout()
         self.setLayout(self.mainLayout)
 
         x, y, w, h = 700, 300, 500, 400
         self.setGeometry(x, y, w, h)
-        screen = QtGui.QDesktopWidget().screenGeometry()
+        screen = QtWidgets.QDesktopWidget().screenGeometry()
         x_offset, y_offset = (0, 0)
         if sys.platform == 'win32':
             y_offset = 50
@@ -183,19 +187,19 @@ class TaskTimerWidget(QtGui.QWidget):
         )
         self.setWindowFlags(flags)
 
-        sizegrip = QtGui.QSizeGrip(self)
+        sizegrip = QtWidgets.QSizeGrip(self)
 
-        self.listWidget.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.listWidget.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
+        self.listWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.listWidget.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
 
-        self.windowIconLayout = QtGui.QHBoxLayout()
+        self.windowIconLayout = QtWidgets.QHBoxLayout()
         self.windowIconLayout.addStretch()
         self.windowIconLayout.addWidget(self.minimizedButton)
         self.windowIconLayout.addWidget(self.closeButton)
         self.mainLayout.addLayout(self.windowIconLayout)
 
         self.mainLayout.addWidget(self.listWidget)
-        self.topButtonLayout = QtGui.QHBoxLayout()
+        self.topButtonLayout = QtWidgets.QHBoxLayout()
         self.mainLayout.addLayout(self.topButtonLayout)
         self.topButtonLayout.addWidget(self.totalTimeWidget)
         # self.topButtonLayout.addWidget(self.totalTimeLabel)
@@ -208,7 +212,7 @@ class TaskTimerWidget(QtGui.QWidget):
         self.topButtonLayout.addWidget(self.round15MinsButton)
         self.topButtonLayout.addWidget(self.exportTasksButton)
 
-        self.middleButtonLayout = QtGui.QHBoxLayout()
+        self.middleButtonLayout = QtWidgets.QHBoxLayout()
         self.mainLayout.addLayout(self.middleButtonLayout)
         self.middleButtonLayout.addWidget(self.newTaskButton)
         self.middleButtonLayout.addWidget(self.toggleTasksButton)
@@ -216,7 +220,7 @@ class TaskTimerWidget(QtGui.QWidget):
             sizegrip, 0, QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight
         )
 
-        # self.bottomButtonLayout = QtGui.QHBoxLayout()
+        # self.bottomButtonLayout = QtWidgets.QHBoxLayout()
         # self.mainLayout.addLayout(self.bottomButtonLayout)
         # self.bottomButtonLayout.addWidget(self.exportTasksButton)
         # self.bottomButtonLayout.addWidget(sizegrip, 0, QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight)
@@ -272,20 +276,20 @@ class TaskTimerWidget(QtGui.QWidget):
         self._exportTasksCallback = exportTasksCallback
 
     def exportTasksButtonDefault(self):
-        menu = QtGui.QMenu(self)
-        action = QtGui.QAction(
+        menu = QtWidgets.QMenu(self)
+        action = QtWidgets.QAction(
             qtawesome.icon("mdi.file-document"), "&Export To CSV", self
         )
         action.activated.connect(self.exportTasksToCSV)
         menu.addAction(action)
 
-        action = QtGui.QAction(
+        action = QtWidgets.QAction(
             qtawesome.icon("mdi.file-document"), "&Load From CSV", self
         )
         action.activated.connect(self.loadTasksFromCSV)
         menu.addAction(action)
 
-        action = QtGui.QAction(
+        action = QtWidgets.QAction(
             qtawesome.icon("mdi.clipboard-text"), "&Show Summary", self
         )
         action.activated.connect(self.showTaskSummary)
@@ -319,7 +323,7 @@ class TaskTimerWidget(QtGui.QWidget):
                     taskWidget.serialise()
                 )
 
-        QtGui.QMessageBox.information(
+        QtWidgets.QMessageBox.information(
             self, "Export Tasks To CSV", "CSV File Created:\n%s" % csv_file
         )
 
@@ -328,7 +332,7 @@ class TaskTimerWidget(QtGui.QWidget):
         import csv
 
         csvDir = os.path.expanduser("~/.taskTimer")
-        selectData = QtGui.QFileDialog.getOpenFileName(self,
+        selectData = QtWidgets.QFileDialog.getOpenFileName(self,
             "Open Saved Data", csvDir, "CSV Files (*.csv)")
         csvPath = selectData[0]
         if not csvPath:
@@ -337,7 +341,7 @@ class TaskTimerWidget(QtGui.QWidget):
         with open(csvPath) as csvFile:
             reader = csv.DictReader(csvFile)
             for taskData in reader:
-                item = QtGui.QListWidgetItem(self.listWidget)
+                item = QtWidgets.QListWidgetItem(self.listWidget)
                 item.setSizeHint(QtCore.QSize(100, 50))
 
                 taskWidget = TaskWidget.fromData(taskData, taskTextWidget=self.taskTextWidget)
@@ -400,7 +404,7 @@ class TaskTimerWidget(QtGui.QWidget):
             taskWidget = self.listWidget.itemWidget(item)
             taskWidget.stop()
 
-        item = QtGui.QListWidgetItem(self.listWidget)
+        item = QtWidgets.QListWidgetItem(self.listWidget)
         item.setSizeHint(QtCore.QSize(100, 50))
 
         taskWidget = TaskWidget(taskTextWidget=self.taskTextWidget)
@@ -606,16 +610,16 @@ class TaskTimerWidget(QtGui.QWidget):
                 text = "Export and Quit to record your progress."
                 text += "\nQuit to discard, or Cancel to return."
 
-            msgBox = QtGui.QMessageBox()
+            msgBox = QtWidgets.QMessageBox()
             msgBox.setWindowTitle(title)
             msgBox.setText(text)
-            msgBox.setIcon(QtGui.QMessageBox.Question)
+            msgBox.setIcon(QtWidgets.QMessageBox.Question)
             exportAndQuitButton = msgBox.addButton(
-                "&Export and Quit", QtGui.QMessageBox.AcceptRole)
+                "&Export and Quit", QtWidgets.QMessageBox.AcceptRole)
             quitButton = msgBox.addButton(
-                "&Quit", QtGui.QMessageBox.DestructiveRole)
+                "&Quit", QtWidgets.QMessageBox.DestructiveRole)
             cancelButton = msgBox.addButton(
-                "&Cancel", QtGui.QMessageBox.RejectRole)
+                "&Cancel", QtWidgets.QMessageBox.RejectRole)
 
             msgBox.setDefaultButton(cancelButton)
 
@@ -623,12 +627,12 @@ class TaskTimerWidget(QtGui.QWidget):
 
             selectedButton = msgBox.clickedButton()
             role = msgBox.buttonRole(selectedButton)
-            if role == QtGui.QMessageBox.AcceptRole:
+            if role == QtWidgets.QMessageBox.AcceptRole:
                 self.exportTasksCallback()
                 super(self.__class__, self).close()
-            elif role == QtGui.QMessageBox.DestructiveRole:
+            elif role == QtWidgets.QMessageBox.DestructiveRole:
                 super(self.__class__, self).close()
-            elif role == QtGui.QMessageBox.RejectRole:
+            elif role == QtWidgets.QMessageBox.RejectRole:
                 return
 
         super(self.__class__, self).close()

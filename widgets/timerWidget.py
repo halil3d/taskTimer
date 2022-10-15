@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 import datetime
 
-from PySide import QtCore, QtGui
+from qtpy import QtCore, QtGui, QtWidgets
 
 from taskTimer import utils
 
 
-class TimerWidget(QtGui.QLCDNumber):
+class TimerWidget(QtWidgets.QLCDNumber):
     def __init__(self, *argss, **kwargs):
         super(self.__class__, self).__init__(*argss, **kwargs)
         self._timerID = None

@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 import datetime
 import qtawesome
-from PySide import QtCore, QtGui
+from qtpy import QtCore, QtGui, QtWidgets
 
 from timerWidget import TimerWidget
 from taskTextWidget import TaskTextWidgetDefault
 from taskTimer import utils
 
 
-class TaskWidget(QtGui.QWidget):
+class TaskWidget(QtWidgets.QWidget):
     addTaskSignal = QtCore.Signal(int)
 
     @classmethod
@@ -23,18 +23,18 @@ class TaskWidget(QtGui.QWidget):
         self._taskTextWidget = None
         self.taskTextWidget = taskTextWidget
 
-        self.editElapsedWidget = QtGui.QLineEdit(self)
+        self.editElapsedWidget = QtWidgets.QLineEdit(self)
 
         escapeEvent = TaskWidgetEscapeEvent(self)
         self.editElapsedWidget.installEventFilter(escapeEvent)
         self.taskTextWidget.installEventFilter(escapeEvent)
 
         self.editElapsedWidget.setToolTip("Enter time as digits and units.")
-        self.editElapsedButton = QtGui.QPushButton(
+        self.editElapsedButton = QtWidgets.QPushButton(
             qtawesome.icon("mdi.check", options=[{"color": "green"}]), ""
         )
         self.editElapsedButton.setToolTip("Confirm Time")
-        self.editElapsedCancelButton = QtGui.QPushButton(
+        self.editElapsedCancelButton = QtWidgets.QPushButton(
             qtawesome.icon("mdi.window-close", options=[{"color": "red"}]), ""
         )
         self.editElapsedCancelButton.setToolTip("Cancel")
@@ -42,15 +42,15 @@ class TaskWidget(QtGui.QWidget):
         self.timerWidget = TimerWidget(self)
         bars = qtawesome.icon("mdi.drag")
         pixmap = bars.pixmap(24, 24)
-        self.moveLabel = QtGui.QLabel()
+        self.moveLabel = QtWidgets.QLabel()
         self.moveLabel.setPixmap(pixmap)
-        # self.stopButton = QtGui.QPushButton("S")
-        # self.resetButton = QtGui.QPushButton("R")
+        # self.stopButton = QtWidgets.QPushButton("S")
+        # self.resetButton = QtWidgets.QPushButton("R")
 
         self.setupUI()
 
     def setupUI(self):
-        self.mainLayout = QtGui.QHBoxLayout()
+        self.mainLayout = QtWidgets.QHBoxLayout()
         self.setLayout(self.mainLayout)
 
         self.editElapsedWidget.setFixedHeight(24)
@@ -65,7 +65,7 @@ class TaskWidget(QtGui.QWidget):
         self.mainLayout.addWidget(self.moveLabel)
 
         self.timerWidget.setToolTip("Double click to edit elapsed time (E)")
-        # self.buttonLayout = QtGui.QHBoxLayout()
+        # self.buttonLayout = QtWidgets.QHBoxLayout()
         # self.mainLayout.addLayout(self.buttonLayout)
 
         # self.stopButton.setFixedSize(24, 24)
@@ -249,7 +249,7 @@ class TaskWidgetEscapeEvent(QtCore.QObject):
     def eventFilter(self, obj, event):
         if event.type() == QtCore.QEvent.KeyPress:
             if event.key() == QtCore.Qt.Key_Escape:
-                if obj.__class__ == QtGui.QLineEdit:
+                if obj.__class__ == QtWidgets.QLineEdit:
                     obj.hide()
                     obj.parent().taskTextWidget.clearFocus()
                     obj.parent().editElapsedButton.hide()

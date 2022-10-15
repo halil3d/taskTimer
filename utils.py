@@ -100,6 +100,7 @@ def isValidTimeString(timeStr):
         except Exception:
             isValid = False
             break
+
     return isValid
 
 
