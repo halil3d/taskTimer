@@ -1,0 +1,4 @@
+PySide==1.2.4
+QtAwesome==0.7.3
+QtPy==1.11.3
+six==1.16.0
