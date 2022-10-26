@@ -243,6 +243,7 @@ class TaskWidget(QtWidgets.QWidget):
             if self.taskTextWidget.hasFocus():
                 self.taskTextWidget.clearFocus()
                 self.parent().setFocus()
+        super(self.__class__, self).keyPressEvent(event)
 
 
 class TaskWidgetEscapeEvent(QtCore.QObject):

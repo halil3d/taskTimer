@@ -20,6 +20,7 @@ from taskTimer import utils
 # TODO: Make installable as pip package
 # TODO: Add unittests
 # TODO: Python 3
+# TODO: Configurable hotkeys with hotkey manager andprofile config
 
 
 class TaskTimerWidget(QtWidgets.QWidget):
@@ -580,7 +581,8 @@ class TaskTimerWidget(QtWidgets.QWidget):
         for i in xrange(self.listWidget.count()):
             taskItem = self.listWidget.item(i)
             taskWidget = self.listWidget.itemWidget(taskItem)
-            totalElapsed += taskWidget.elapsed()
+            if taskWidget:
+                totalElapsed += taskWidget.elapsed()
         self.totalTimeWidget.displayMilliseconds(totalElapsed)
         # seconds, remainder = divmod(totalElapsed, utils.timeMultiplier('secs', 'ms'))
         # if seconds:

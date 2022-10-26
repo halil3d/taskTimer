@@ -168,6 +168,7 @@ class TaskListWidget(QtWidgets.QListWidget):
         super(self.__class__, self).mousePressEvent(event)
 
     def keyPressEvent(self, event):
+        propagate_event = True
         selected = self.selectedItems()
 
         # Merge Selected Tasks
@@ -190,6 +191,16 @@ class TaskListWidget(QtWidgets.QListWidget):
                     if event.key() == QtCore.Qt.Key_T:
                         if not taskWidget.taskTextWidget.hasFocus():
                             taskWidget.taskTextWidget.setFocus()
+                if event.modifiers() == (QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier):
+                    # Move Tasks Up
+                    if event.key() == QtCore.Qt.Key_Up:
+                        propagate_event = False
+                        self.moveTasksUp()
+
+                    # Move Tasks Down
+                    if event.key() == QtCore.Qt.Key_Down:
+                        propagate_event = False
+                        self.moveTasksDown()
 
                 # Pause / Resume Task
                 if event.key() in [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter]:
@@ -206,4 +217,50 @@ class TaskListWidget(QtWidgets.QListWidget):
 
             self.updateButtonStatesSignal.emit()
 
-        super(self.__class__, self).keyPressEvent(event)
+        if propagate_event:
+            super(self.__class__, self).keyPressEvent(event)
+
+    def moveTasksUp(self):
+        selected = self.selectedItems()
+        if not selected:
+            return
+
+        print("moveTasksUp")
+        for taskItem in sorted(selected, reverse=True):
+            row = self.row(taskItem)
+            new_row = row - 1
+            if new_row < 0:
+                new_row = self.count()
+
+            taskWidget = self.itemWidget(taskItem)
+            print taskWidget.taskTextWidget.serialise()
+            cloneItem = taskItem.clone()
+            print new_row
+            self.insertItem(new_row, cloneItem)
+            self.setItemWidget(cloneItem, taskWidget)
+            print self.row(taskItem)
+            oldItem = self.takeItem(self.row(taskItem))
+            cloneItem.setSelected(True)
+
+    def moveTasksDown(self):
+        selected = self.selectedItems()
+        if not selected:
+            return
+
+        print("moveTasksDown")
+        for taskItem in sorted(selected, key=lambda x: self.row(x), reverse=True):
+            row = self.row(taskItem)
+            new_row = row + 2
+            if new_row > self.count():
+                new_row = 0
+
+            taskWidget = self.itemWidget(taskItem)
+            print "text", taskWidget.taskTextWidget.serialise()
+            print "current row: ", self.row(taskItem)
+            cloneItem = taskItem.clone()
+            print "new_row", new_row
+            self.insertItem(new_row, cloneItem)
+            self.setItemWidget(cloneItem, taskWidget)
+            print "old row", self.row(taskItem)
+            oldItem = self.takeItem(self.row(taskItem))
+            cloneItem.setSelected(True)
