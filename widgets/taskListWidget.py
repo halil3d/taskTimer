@@ -171,11 +171,22 @@ class TaskListWidget(QtWidgets.QListWidget):
         propagate_event = True
         selected = self.selectedItems()
 
-        # Merge Selected Tasks
-        if event.key() == QtCore.Qt.Key_M:
-            self.mergeTasksSignal.emit()
-
         if selected:
+            # Merge Selected Tasks
+            if event.key() == QtCore.Qt.Key_M:
+                self.mergeTasksSignal.emit()
+
+            if event.modifiers() == (QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier):
+                # Move Tasks Up
+                if event.key() == QtCore.Qt.Key_Up:
+                    propagate_event = False
+                    self.moveTasksUp()
+
+                # Move Tasks Down
+                if event.key() == QtCore.Qt.Key_Down:
+                    propagate_event = False
+                    self.moveTasksDown()
+
             for i, taskItem in enumerate(selected, start=1):
                 taskWidget = self.itemWidget(taskItem)
                 if i == len(selected):
@@ -191,16 +202,6 @@ class TaskListWidget(QtWidgets.QListWidget):
                     if event.key() == QtCore.Qt.Key_T:
                         if not taskWidget.taskTextWidget.hasFocus():
                             taskWidget.taskTextWidget.setFocus()
-                if event.modifiers() == (QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier):
-                    # Move Tasks Up
-                    if event.key() == QtCore.Qt.Key_Up:
-                        propagate_event = False
-                        self.moveTasksUp()
-
-                    # Move Tasks Down
-                    if event.key() == QtCore.Qt.Key_Down:
-                        propagate_event = False
-                        self.moveTasksDown()
 
                 # Pause / Resume Task
                 if event.key() in [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter]:
@@ -225,20 +226,16 @@ class TaskListWidget(QtWidgets.QListWidget):
         if not selected:
             return
 
-        print("moveTasksUp")
-        for taskItem in sorted(selected, reverse=True):
+        for taskItem in sorted(selected, key=lambda x: self.row(x)):
             row = self.row(taskItem)
             new_row = row - 1
             if new_row < 0:
                 new_row = self.count()
 
             taskWidget = self.itemWidget(taskItem)
-            print taskWidget.taskTextWidget.serialise()
             cloneItem = taskItem.clone()
-            print new_row
             self.insertItem(new_row, cloneItem)
             self.setItemWidget(cloneItem, taskWidget)
-            print self.row(taskItem)
             oldItem = self.takeItem(self.row(taskItem))
             cloneItem.setSelected(True)
 
@@ -247,7 +244,6 @@ class TaskListWidget(QtWidgets.QListWidget):
         if not selected:
             return
 
-        print("moveTasksDown")
         for taskItem in sorted(selected, key=lambda x: self.row(x), reverse=True):
             row = self.row(taskItem)
             new_row = row + 2
@@ -255,12 +251,8 @@ class TaskListWidget(QtWidgets.QListWidget):
                 new_row = 0
 
             taskWidget = self.itemWidget(taskItem)
-            print "text", taskWidget.taskTextWidget.serialise()
-            print "current row: ", self.row(taskItem)
             cloneItem = taskItem.clone()
-            print "new_row", new_row
             self.insertItem(new_row, cloneItem)
             self.setItemWidget(cloneItem, taskWidget)
-            print "old row", self.row(taskItem)
             oldItem = self.takeItem(self.row(taskItem))
             cloneItem.setSelected(True)
