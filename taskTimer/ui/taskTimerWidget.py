@@ -7,14 +7,13 @@ from functools import partial
 import qtawesome
 from qtpy import QtCore, QtWidgets, QtWidgets
 
-from .taskListWidget import TaskListWidget
-from .timerWidget import TimerWidget
-from .taskWidget import TaskWidget
-from .taskSummary import TaskSummary
+from taskTimer.ui.taskListWidget import TaskListWidget
+from taskTimer.ui.timerWidget import TimerWidget
+from taskTimer.ui.taskWidget import TaskWidget
+from taskTimer.ui.taskSummary import TaskSummary
 
 from taskTimer import utils
 
-# TODO: Page up/down hotkeys for moving selected TaskWidget order in listview
 # TODO: Add history queue to undo actions
 # TODO: Make a virtual env for testing with requirements
 # TODO: Make installable as pip package

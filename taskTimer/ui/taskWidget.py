@@ -4,8 +4,8 @@ import datetime
 import qtawesome
 from qtpy import QtCore, QtGui, QtWidgets
 
-from timerWidget import TimerWidget
-from taskTextWidget import TaskTextWidgetDefault
+from taskTimer.ui.timerWidget import TimerWidget
+from taskTimer.ui.taskTextWidget import TaskTextWidgetDefault
 from taskTimer import utils
 
 

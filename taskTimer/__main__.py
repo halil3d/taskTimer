@@ -4,7 +4,7 @@ from qtpy import QtCore, QtGui, QtWidgets
 
 import sys
 
-from widgets.taskTimerWidget import TaskTimerWidget
+from taskTimer.ui.taskTimerWidget import TaskTimerWidget
 app = QtWidgets.QApplication(sys.argv[1:])
 t = TaskTimerWidget()
 t.show()

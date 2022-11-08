@@ -6,8 +6,8 @@ from functools import partial
 import qtawesome
 from qtpy import QtCore, QtGui, QtWidgets
 
-from .timerWidget import TimerWidget
-from .taskWidget import TaskWidget
+from taskTimer.ui.timerWidget import TimerWidget
+from taskTimer.ui.taskWidget import TaskWidget
 
 
 class TaskListWidget(QtWidgets.QListWidget):
