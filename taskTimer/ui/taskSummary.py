@@ -16,7 +16,7 @@ class TaskSummary(QtWidgets.QWidget):
         self.mainLayout = QtWidgets.QVBoxLayout(self)
         self.closeButton = QtWidgets.QPushButton(qtawesome.icon("mdi.window-close"), "")
         self.windowIconLayout = QtWidgets.QHBoxLayout()
-        self.model = QtWidgets.QStandardItemModel(self)
+        self.model = QtGui.QStandardItemModel(self)
         self.tableView = QtWidgets.QTableView(self)
 
         self.setupUI()
@@ -50,15 +50,15 @@ class TaskSummary(QtWidgets.QWidget):
 
         headerRow = []
         for header in ["Task", "Start", "End", "Elapsed"]:
-            headerRow.append(QtWidgets.QStandardItem(header))
+            headerRow.append(QtGui.QStandardItem(header))
         self.model.appendRow(headerRow)
 
         for taskWidget in self.taskWidgets:
             rowItems = [
-                QtWidgets.QStandardItem(taskWidget.taskTextWidget.serialise()),
-                QtWidgets.QStandardItem(taskWidget.started().strftime("%Y-%m-%d %H:%M:%S")),
-                QtWidgets.QStandardItem(taskWidget.ended().strftime("%Y-%m-%d %H:%M:%S")),
-                QtWidgets.QStandardItem(
+                QtGui.QStandardItem(taskWidget.taskTextWidget.serialise()),
+                QtGui.QStandardItem(taskWidget.started().strftime("%Y-%m-%d %H:%M:%S")),
+                QtGui.QStandardItem(taskWidget.ended().strftime("%Y-%m-%d %H:%M:%S")),
+                QtGui.QStandardItem(
                     utils.timeToString(
                         taskWidget.elapsed(), inputUnit="ms", minUnit="s"
                     )

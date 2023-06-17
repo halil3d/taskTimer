@@ -17,9 +17,11 @@ class Timer(object):
         return False
 
     def start(self):
+        # FIXME check orignal timerWidget logic
         self._ended = None
-        self._timer_start = datetime.datetime.now()
-        self._started = self._timer_start
+        if not self._started:
+            self._started = datetime.datetime.now()
+            self._timer_start = datetime.datetime.now()
 
     def elapsed(self):
         elapsed = None

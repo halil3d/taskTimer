@@ -160,13 +160,13 @@ class TaskWidget(QtWidgets.QWidget):
         if text.startswith("split"):
             text = text.partition("split")[-1].strip(":").strip()
             if utils.isValidTimeString(text):
-                split_elapsed = utils.stringToTime(text, "ms")
+                split_elapsed = utils.stringToTime(text, "secs")
                 if split_elapsed:
                     days, remainder = divmod(
-                        split_elapsed, utils.timeMultiplier("days", "ms")
+                        split_elapsed, utils.timeMultiplier("days", "secs")
                     )
                     if not days:
-                        current_elapsed = self.elapsed() - split_elapsed
+                        current_elapsed = self.elapsed() - datetime.timedelta(seconds=split_elapsed)
                         if not current_elapsed >= 0:
                             self.hideEditElapsed()
                             self.timerWidget.show()
@@ -180,12 +180,12 @@ class TaskWidget(QtWidgets.QWidget):
                 pass
         else:
             if utils.isValidTimeString(text):
-                elapsed = utils.stringToTime(text, "ms")
+                elapsed = utils.stringToTime(text, "secs")
                 days, remainder = divmod(
-                    elapsed, utils.timeMultiplier("days", "ms")
+                    elapsed, utils.timeMultiplier("days", "secs")
                 )
                 if not days:
-                    self.setElapsed(elapsed)
+                    self.setElapsed(datetime.timedelta(seconds=elapsed))
             else:
                 pass
                 # Handled by editElapsedTextChanged

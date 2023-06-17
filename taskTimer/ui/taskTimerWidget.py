@@ -576,13 +576,13 @@ class TaskTimerWidget(QtWidgets.QWidget):
         self.updateButtonStates()
 
     def timerEvent(self, event):
-        totalElapsed = 0
+        totalElapsed = datetime.timedelta(0)
         for i in xrange(self.listWidget.count()):
             taskItem = self.listWidget.item(i)
             taskWidget = self.listWidget.itemWidget(taskItem)
             if taskWidget:
                 totalElapsed += taskWidget.elapsed()
-        self.totalTimeWidget.displayMilliseconds(totalElapsed)
+        self.totalTimeWidget.displayDelta(totalElapsed)
         # seconds, remainder = divmod(totalElapsed, utils.timeMultiplier('secs', 'ms'))
         # if seconds:
         #     self.totalTimeLabel.setText(utils.timeToString(seconds, inputUnit='secs'))
