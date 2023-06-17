@@ -1,9 +1,9 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8
 import datetime
+from qtpy import QtWidgets
 
-from qtpy import QtCore, QtGui, QtWidgets
-
+from taskTimer import timer
 from taskTimer import utils
 
 
@@ -11,11 +11,7 @@ class TimerWidget(QtWidgets.QLCDNumber):
     def __init__(self, *argss, **kwargs):
         super(self.__class__, self).__init__(*argss, **kwargs)
         self._timerID = None
-        self._elapsed = 0
-        self._timer = QtCore.QElapsedTimer()
-        self._started = None
-        self._ended = None
-
+        self._timer = timer.Timer()
         self.setupUI()
         self.reset()
 
@@ -29,87 +25,66 @@ class TimerWidget(QtWidgets.QLCDNumber):
         )
 
     def isActive(self):
-        if self._timerID:
-            return True
-        return False
+        return self._timer.isActive()
 
     def elapsed(self):
-        if self._timerID:
-            return self._elapsed + self._timer.elapsed()
-        else:
-            return self._elapsed
+        return self._timer.elapsed()
 
     def setElapsed(self, value):
-        isActive = self.isActive()
-        self.reset()
-        self._elapsed = value
-        if isActive:
+        self._timer.setElapsed(value)
+        if self.isActive():
             self.start()
         else:
-            self.displayMilliseconds(value)
+            self.displayDelta(value)
 
     def start(self):
-        if not self.isActive():
-            self._timerID = self.startTimer(1)
-        if not self._started:
-            self._started = datetime.datetime.now()
         self._timer.start()
+        self._timerID = self.startTimer(1)
         self.setStyleSheet(
             "QLCDNumber{color: rgb(40, 180, 33); background-color: rgb(50, 70, 50);}"
         )
 
     def started(self):
-        # FIXME: Need to do something smart when timer has been created with set
-        # time and was never activated, returning now() for now...
-        return self._started or datetime.datetime.now()
+        return self._timer.started()
 
-    def setStarted(self, datetime):
-        self._started = datetime
+    def setStarted(self, value):
+        self._timer.setStarted(value)
 
     def stop(self):
+        self._timer.stop()
         if self._timerID:
-            self._elapsed += self._timer.elapsed()
             self.killTimer(self._timerID)
-            self._timerID = None
-            self._ended = datetime.datetime.now()
         self.setStyleSheet(
             "QLCDNumber{color: rgb(100, 120, 92); background-color: rgb(50, 70, 50);}"
         )
 
     def ended(self):
-        if self._timerID:
-            self._ended = datetime.datetime.now()
-        # FIXME: Need to do something smart when timer has been created with set
-        # time and was never activated, returning now() for now...
-        return self._ended or datetime.datetime.now()
+        return self._timer.ended()
 
-    def setEnded(self, datetime):
-        self._ended = datetime
+    def setEnded(self, value):
+        self._timer.setEnded(value)
 
     def reset(self):
-        if self._timerID:
-            self.killTimer(self._timerID)
-            self._timerID = None
-
-        self._elapsed = 0
+        self.stop()
+        self._timer.reset()
         self.display("00:00:00")
 
     def toggle(self):
-        if self._timerID:
+        if self.isActive():
             self.stop()
         else:
             self.start()
 
-    def displayMilliseconds(self, milliseconds):
-        days, remainder = divmod(milliseconds, utils.timeMultiplier("days", "ms"))
+    def displayDelta(self, value):
+        days, remainder = divmod(value.total_seconds(), utils.timeMultiplier("days", "secs"))
         if days:
             raise Exception("Cannot set a value > 24 hours.")
-        hours, remainder = divmod(remainder, utils.timeMultiplier("hours", "ms"))
-        minutes, remainder = divmod(remainder, utils.timeMultiplier("mins", "ms"))
-        seconds, remainder = divmod(remainder, utils.timeMultiplier("secs", "ms"))
+        hours, remainder = divmod(remainder, utils.timeMultiplier("hours", "secs"))
+        minutes, remainder = divmod(remainder, utils.timeMultiplier("mins", "secs"))
+        seconds, remainder = divmod(remainder, utils.timeMultiplier("secs", "secs"))
         timestring = "{:02.0f}:{:02.0f}:{:02.0f}".format(hours, minutes, seconds)
         self.display(timestring)
 
-    def timerEvent(self, event):
-        milliseconds = self._elapsed + self._timer.elapsed()
-        self.displayMilliseconds(milliseconds)
+    def timerEvent(self, event):  #pylint: disable=unused-argument
+        elapsed_delta = self.elapsed()
+        self.displayDelta(elapsed_delta)
