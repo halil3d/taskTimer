@@ -1,6 +1,8 @@
 import re
 from collections import OrderedDict
 
+from taskTimer import constants
+
 
 def convertTime(value, src_unit, dst_unit):
     """
@@ -25,7 +27,7 @@ def stringToTime(timeStr, unit='us'):
     >>>18.0
     """
     if not isinstance(timeStr, basestring):
-        print "Please specify a time string"
+        print("Please specify a time string")
         return
 
     timeDict = _timeStringToDict(timeStr)
@@ -41,19 +43,19 @@ def timeToString(timeValue, inputUnit='ms', minUnit='us'):
     Convert time value to a string
     """
     if not timeValue:
-        print "Please specify time and unit."
+        print("Please specify time and unit.")
         return
 
     timeDict = OrderedDict([
-        ('year', 0.0),
-        ('month', 0.0),
-        ('week', 0.0),
-        ('day', 0.0),
-        ('hour', 0.0),
-        ('minute', 0.0),
-        ('second', 0.0),
-        ('millisecond', 0.0),
-        ('microsecond', 0.0)
+        (constants.YEAR_UNIT_LONG, 0.0),
+        (constants.MONTH_UNIT_LONG, 0.0),
+        (constants.WEEK_UNIT_LONG, 0.0),
+        (constants.DAY_UNIT_LONG, 0.0),
+        (constants.HOUR_UNIT_LONG, 0.0),
+        (constants.MINUTE_UNIT_LONG, 0.0),
+        (constants.SECOND_UNIT_LONG, 0.0),
+        (constants.MILLISECOND_UNIT_LONG, 0.0),
+        (constants.MICROSECOND_UNIT_LONG, 0.0)
     ])
 
     for timeStr in timeDict:
@@ -112,18 +114,18 @@ def _timeStringToDict(timeStr):
     >>>_timeStringToDict('5day')  # or '5days'
     {'d':5, 'h':0.0, 'm':0.0, 's':0.0, 'ms':0.0, 'us':0.0}
     >>>_timeStringToDict('24hrs,30mins')
-    {'h':24, 'm':30,'m':0.0, 's':0.0, 'ms':0.0, 'us':0.0}
+    {'d':0, 'h':24, 'm':30, 's':0.0, 'ms':0.0, 'us':0.0}
     """
     timeDict = OrderedDict([
-        ('y', 0.0),
-        ('mth', 0.0),
-        ('w', 0.0),
-        ('d', 0.0),
-        ('h', 0.0),
-        ('m', 0.0),
-        ('s', 0.0),
-        ('ms', 0.0),
-        ('us', 0.0)
+        (constants.YEAR_UNIT_SHORT, 0.0),
+        (constants.MONTH_UNIT_SHORT, 0.0),
+        (constants.WEEK_UNIT_SHORT, 0.0),
+        (constants.DAY_UNIT_SHORT, 0.0),
+        (constants.HOUR_UNIT_SHORT, 0.0),
+        (constants.MINUTE_UNIT_SHORT, 0.0),
+        (constants.SECOND_UNIT_SHORT, 0.0),
+        (constants.MILLISECOND_UNIT_SHORT, 0.0),
+        (constants.MICROSECOND_UNIT_SHORT, 0.0)
     ])
 
     tokens = re.split(r', |,|(?<=[^\d]) ', timeStr)
@@ -145,19 +147,12 @@ def timeMultiplier(src_unit='hr', dst_unit='sec'):
     """
     Return a multiplier between two time units.
     """
-    ruler = {
-        'd': 86400000000.0,
-        'h': 3600000000.0,
-        'm': 60000000.0,
-        's': 1000000.0,
-        'ms': 1000.0,
-        'us': 1.0
-    }
-    ruler['w'] = 7.0 * ruler['d']
-    ruler['mth'] = 30.436849917 * ruler['d']
-    ruler['y'] = 12.0 * ruler['mth']
-    scale = ruler[_unitFromString(src_unit)] / ruler[_unitFromString(dst_unit)]
-    return scale
+    src_unit = _unitFromString(src_unit)
+    dst_unit = _unitFromString(dst_unit)
+    src_microseconds = constants.TIME_STRING_TO_MICROSECONDS[src_unit]
+    dst_microseconds = constants.TIME_STRING_TO_MICROSECONDS[dst_unit]
+    multiplier = src_microseconds / dst_microseconds
+    return multiplier
 
 
 def _unitFromString(unit='sec'):
@@ -165,54 +160,12 @@ def _unitFromString(unit='sec'):
     Return known time unit.
     """
     unit = unit.lower()
-    if unit in ('y', 'year', 'yrs', 'years'):
-        return 'y'
-    elif unit in ('mon', 'mons', 'mth', 'mths', 'month', 'months'):
-        return 'mth'
-    elif unit in ('w', 'wk', 'wks', 'week', 'weeks'):
-        return 'w'
-    elif unit in ('d', 'day', 'days'):
-        return 'd'
-    elif unit in ('h', 'hr', 'hrs', 'hour', 'hours'):
-        return 'h'
-    elif unit in ('m', 'min', 'mins', 'minute', 'minutes'):
-        return 'm'
-    elif unit in ('s', 'sec', 'secs', 'second', 'seconds'):
-        return 's'
-    elif unit in ('ms', 'millisecond', 'milliseconds'):
-        return 'ms'
-    elif unit in ('us', 'microsecond', 'microseconds'):
-        return 'us'
+    found_unit = None
+    for time_unit, time_strings in constants.UNIT_VALID_STRING_MAPPING.items():
+        if unit in time_strings:
+            found_unit = time_unit
+            break
     else:
-        raise TypeError("Unknown time unit:", unit)
+        raise TypeError("Unknown time unit: {}".format(unit))
 
-
-if __name__ == "__main__":
-    print stringToTime("1hrs", 'mins')
-    print stringToTime("1d", 'hrs')
-    print stringToTime("0.5y, 1w, 5d, 3.5h, 50m, 15s, 20ms, 6us", 'w')
-    print stringToTime("0.5 y, 1 w, 5 d, 3.5 h, 50 m, 15 s, 20 ms, 6 us", 'w')
-    print stringToTime("26weeks 3days 3hours", 'y')
-    print stringToTime("26 weeks 3 days 3 hours", 'y')
-    print stringToTime("26 weeks, 3 days, 3 hours", 'y')
-    print stringToTime("26 weeks,3 days,3 hours", 'y')
-    print stringToTime("0.5d 6hrs", 'hrs')
-    print timeToString(360000, 'ms')
-    print timeToString(24, 'w')
-    print timeToString(360, 'h')
-    print timeToString(2, 'h')
-    print timeToString(1, 's')
-
-    print "*" * 80
-    elapsed = stringToTime('1h 29mins', 'ms')
-    print elapsed
-    hours, remainder = divmod(elapsed, timeMultiplier('hours', 'ms'))
-    halfHour, remainder = divmod(remainder, timeMultiplier('hours', 'ms') / 2)
-    print hours
-    print halfHour
-    print timeMultiplier('hours', 'ms') / 2
-
-    print isValidTimeString(None)
-    print isValidTimeString(1)
-    print isValidTimeString("1")
-    print isValidTimeString("1h")
+    return found_unit
