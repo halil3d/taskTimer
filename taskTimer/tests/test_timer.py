@@ -74,6 +74,22 @@ class TestTimer(unittest.TestCase):
         self.assertTrue(isinstance(elapsed, datetime.timedelta))
         self.assertTrue(elapsed > datetime.timedelta(seconds=1))
 
+    def test_timer_start_stop_elapsed(self):
+        elapsed = self.timer.elapsed()
+        self.assertFalse(elapsed)
+        self.assertTrue(elapsed == datetime.timedelta(seconds=0))
+
+        self.timer.start()
+        time.sleep(1)  # 1 sec elapsed
+        self.timer.stop()
+        time.sleep(1)  # 1 sec timer off - not elapsing
+        self.timer.start()
+        time.sleep(1)  # 2 sec elapsed
+        elapsed = self.timer.elapsed()
+        self.assertTrue(elapsed)
+        self.assertTrue(isinstance(elapsed, datetime.timedelta))
+        self.assertTrue(datetime.timedelta(seconds=2) < elapsed < datetime.timedelta(seconds=3))
+
     def test_timer_setElapsed(self):
         delta = datetime.timedelta(seconds=999)
         self.timer.setElapsed(delta)
